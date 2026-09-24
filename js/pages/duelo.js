@@ -39,6 +39,7 @@ const els = {
 
 let state = null;
 let busy = false;
+const pendingClickTimers = new Map();
 
 function cardHtml(card, side, location, selected = false) {
     const image = getCardImage(card);
@@ -53,10 +54,6 @@ function cardHtml(card, side, location, selected = false) {
                 ? '<img src="' + escapeHtml(image) + '" alt="' +
                   escapeHtml(card.name || "Carta") + '">'
                 : '<div class="battle-card-placeholder">?</div>'}
-            <div class="card-state">
-                <span>DEF ${Number(card.currentDef ?? card.def) || 0}</span>
-                <span>ATK ${Number(card.atk) || 0}</span>
-            </div>
         </div>
     `;
 }
@@ -289,6 +286,14 @@ async function handleCardDoubleClick(cardElement) {
 
     const side = cardElement.dataset.side;
     const location = Number(cardElement.dataset.location);
+    const uid = cardElement.dataset.uid;
+
+    const timer = pendingClickTimers.get(uid);
+
+    if (timer) {
+        clearTimeout(timer);
+        pendingClickTimers.delete(uid);
+    }
 
     if (side === "player-hand") {
         if (state.turn !== "player") return;
@@ -296,6 +301,20 @@ async function handleCardDoubleClick(cardElement) {
         const card = state.playerHand[location];
 
         if (!card) return;
+
+        if (state.sacrificeMode) {
+            try {
+                sacrificeCard(state, "player", location);
+                state.sacrificeMode = false;
+                state.selectedHandUid = null;
+                state.status = card.name + " foi sacrificada. +1 Mana máxima.";
+            } catch (error) {
+                state.status = error.message;
+            }
+
+            render();
+            return;
+        }
 
         state.selectedHandUid =
             state.selectedHandUid === card.uid ? null : card.uid;
@@ -404,30 +423,21 @@ async function handleHandClick(event) {
     if (!cardElement || event.detail !== 1) return;
 
     const uid = cardElement.dataset.uid;
+    const oldTimer = pendingClickTimers.get(uid);
 
-    setTimeout(() => {
+    if (oldTimer) clearTimeout(oldTimer);
+
+    const timer = setTimeout(() => {
+        pendingClickTimers.delete(uid);
+
         if (busy) return;
 
-        const index = findHandIndex(uid);
         const card = findHandCard(uid);
 
-        if (!card || index < 0) return;
+        if (card) openSheet(card);
+    }, 260);
 
-        if (state.sacrificeMode) {
-            try {
-                sacrificeCard(state, "player", index);
-                state.sacrificeMode = false;
-                state.selectedHandUid = null;
-                state.status = card.name + " foi sacrificada. +1 Mana máxima.";
-                render();
-            } catch (error) {
-                state.status = error.message;
-                render();
-            }
-        } else {
-            openSheet(card);
-        }
-    }, 180);
+    pendingClickTimers.set(uid, timer);
 }
 
 async function handleEndTurn() {
@@ -610,7 +620,16 @@ async function loadBattle() {
 }
 
 els.playerHand.addEventListener("click", handleHandClick);
+els.playerHand.addEventListener("dblclick", event => {
+    const cardElement = event.target.closest(".battle-card");
+    if (cardElement) handleCardDoubleClick(cardElement);
+});
+
 els.arena.addEventListener("click", handleArenaClick);
+els.arena.addEventListener("dblclick", event => {
+    const cardElement = event.target.closest(".battle-card");
+    if (cardElement) handleCardDoubleClick(cardElement);
+});
 
 els.endTurn.addEventListener("click", handleEndTurn);
 els.sacrifice.addEventListener("click", handleSacrifice);
