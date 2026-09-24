@@ -1,0 +1,1 @@
+import{getAll,STORES}from "../core/database.js";async function render(){const inventory=await getAll(STORES.INVENTORY),deck=await getAll(STORES.DECK);document.getElementById("inventoryCount").textContent=inventory.reduce((n,c)=>n+Number(c.quantity||0),0);document.getElementById("deckCount").textContent=deck.length+" / 25"}render().catch(console.error);
