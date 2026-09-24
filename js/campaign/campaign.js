@@ -1,4 +1,4 @@
-import { getAll, get, put } from "../core/database.js";
+import { getAll, get, put, STORES } from "../core/database.js";
 import { addCardToInventory } from "../player/inventory.js";
 
 export const CAMPAIGN_VERSION = 2;
@@ -91,7 +91,10 @@ export async function generateRewardOptions(stageId) {
         return progress.pendingRewards[stage.id];
     }
 
-    const cards = await getAll("cardCollection");
+    // As recompensas sempre são retiradas da Coleção real do jogo.
+    // O Inventário não participa da seleção: ele apenas recebe a cópia
+    // depois que o jogador escolhe uma das opções.
+    const cards = await getAll(STORES.COLLECTION);
 
     const candidates = cards.filter(card => {
         const mana = Number(card.mana);
@@ -104,12 +107,14 @@ export async function generateRewardOptions(stageId) {
     const shuffled = randomize(candidates);
     const options = shuffled.slice(0, 3);
 
-    progress.pendingRewards[stage.id] = options.map(card => card.originalId);
+    progress.pendingRewards[stage.id] = options.map(card => String(card.originalId));
 
     await saveProgress(progress);
 
     return options.map(originalId => {
-        return cards.find(card => card.originalId === originalId);
+        return cards.find(card =>
+            String(card.originalId) === String(originalId)
+        );
     }).filter(Boolean);
 }
 
@@ -148,14 +153,18 @@ export async function claimReward(stageId, originalId) {
         throw new Error("Essa carta não está entre as recompensas disponíveis.");
     }
 
-    const cards = await getAll("cardCollection");
-    const card = cards.find(item => item.originalId === originalId);
+    // Confirma novamente na Coleção antes de entregar a recompensa.
+    // Isso evita colocar no Inventário uma carta que não exista mais.
+    const cards = await getAll(STORES.COLLECTION);
+    const card = cards.find(item =>
+        String(item.originalId) === String(originalId)
+    );
 
     if (!card) {
         throw new Error("A carta escolhida não foi encontrada na Coleção.");
     }
 
-    await addCardToInventory(originalId, 1);
+    await addCardToInventory(String(card.originalId), 1);
 
     delete progress.pendingRewards[stage.id];
     await saveProgress(progress);
