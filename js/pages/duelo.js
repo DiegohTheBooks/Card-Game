@@ -33,9 +33,8 @@ const els = {
     round: document.getElementById("roundNumber"),
     turn: document.getElementById("turnLabel"),
     enemyName: document.getElementById("enemyName"),
-    enemyHandCount: document.getElementById("enemyHandCount"),
-    enemyDeckCount: document.getElementById("enemyDeckCount"),
-    enemyGraveCount: document.getElementById("enemyGraveCount"),
+    enemyCounters: document.getElementById("enemyCounters"),
+    playerCounters: document.getElementById("playerCounters"),
     playerDeckCount: document.getElementById("playerDeckCount"),
     playerGraveCount: document.getElementById("playerGraveCount"),
     playerLanes: document.getElementById("playerLanes"),
@@ -155,9 +154,15 @@ function renderHud() {
             ? "SEU TURNO"
             : "TURNO INIMIGO";
 
-    els.enemyHandCount.textContent = state.enemyHand.length;
-    els.enemyDeckCount.textContent = state.enemyDeck.length;
-    els.enemyGraveCount.textContent = state.enemyGraveyard.length;
+    els.enemyCounters.innerHTML =
+        "Mão: " + state.enemyHand.length +
+        " · Deck: " + state.enemyDeck.length +
+        " · Cemitério: " + state.enemyGraveyard.length;
+
+    els.playerCounters.innerHTML =
+        "Deck: <strong>" + state.playerDeck.length +
+        "</strong> · Cemitério: <strong>" +
+        state.playerGraveyard.length + "</strong>";
 
     els.playerDeckCount.textContent = state.playerDeck.length;
     els.playerGraveCount.textContent = state.playerGraveyard.length;
