@@ -10,6 +10,9 @@ import {
     normalizeCollections
 } from "./cards.js";
 
+import { initializeStarterInventory } from "../player/inventory.js";
+import { initializeStarterDeck } from "../player/deck.js";
+
 export function extractCards(payload) {
     if (Array.isArray(payload)) {
         return payload;
