@@ -1,7 +1,7 @@
 import { getAll, STORES } from "../core/database.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
 import { initializeStarterInventory } from "../player/inventory.js";
-import { addToDeck, removeFromDeck, clearDeck, MAX_DECK_SIZE } from "../player/deck.js";
+import { addToDeck, removeFromDeck, clearDeck, MAX_DECK_SIZE, initializeStarterDeck } from "../player/deck.js";
 
 const inventoryCount = document.getElementById("inventoryCount");
 const deckCount = document.getElementById("deckCount");
@@ -128,6 +128,7 @@ function renderDeck() {
 async function reload() {
     cards = await getAll(STORES.COLLECTION);
     await initializeStarterInventory();
+    await initializeStarterDeck();
     inventory = await getAll(STORES.INVENTORY);
     deck = await getAll(STORES.DECK);
 
