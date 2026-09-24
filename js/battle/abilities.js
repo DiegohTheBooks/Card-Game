@@ -1,0 +1,1 @@
+export function resolveAbility(card,context={}){return{card,context}}
