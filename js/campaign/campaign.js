@@ -1,0 +1,1 @@
+export const CAMPAIGN_VERSION=1;export const campaignData={stages:[]};
