@@ -8,5 +8,13 @@ export function escapeHtml(value = "") {
 }
 
 export function getCardImage(card) {
-    return card?.image || card?.imageData || card?.art || "";
+    return card?.image ||
+        card?.imageData ||
+        card?.imageUrl ||
+        card?.art ||
+        "";
+}
+
+export function formatNumber(value) {
+    return new Intl.NumberFormat("pt-BR").format(Number(value) || 0);
 }
