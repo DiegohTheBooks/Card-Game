@@ -229,27 +229,6 @@
     font-size: 2rem;
 }
 
-.card-state {
-    position: absolute;
-    left: 6px;
-    right: 6px;
-    bottom: 6px;
-    display: flex;
-    justify-content: space-between;
-    gap: 5px;
-    padding: 5px 7px;
-    border-radius: 8px;
-    background: rgba(7,7,15,.78);
-    color: var(--ap-text);
-    font-size: .62rem;
-    font-weight: 700;
-    pointer-events: none;
-}
-
-.card-state .damage {
-    color: #e6b4b4;
-}
-
 .hand-section {
     margin-top: 18px;
     padding: 18px;
@@ -469,14 +448,6 @@
 
     .battle-card {
         border-radius: 9px;
-    }
-
-    .card-state {
-        font-size: .52rem;
-        left: 3px;
-        right: 3px;
-        bottom: 3px;
-        padding: 4px;
     }
 
     .hand-header {
