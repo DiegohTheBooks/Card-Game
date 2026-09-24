@@ -89,6 +89,10 @@ export async function importCollectionJson(payload) {
         cards
     });
 
+    // Primeiro import: deixa o jogador pronto para jogar.
+    await initializeStarterInventory();
+    await initializeStarterDeck();
+
     return {
         type: "collection",
         cards,
