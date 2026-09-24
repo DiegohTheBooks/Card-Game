@@ -1,8 +1,9 @@
 const DB_NAME = "CardDuelsV6";
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 export const STORES = {
     COLLECTION: "cardCollection",
+    COLLECTIONS: "cardCollections",
     INVENTORY: "playerInventory",
     DECK: "playerDeck",
     PROGRESS: "gameProgress",
@@ -19,9 +20,27 @@ export function openDatabase() {
 
         request.onupgradeneeded = () => {
             const db = request.result;
+            const transaction = request.transaction;
+            let cardsStore;
 
             if (!db.objectStoreNames.contains(STORES.COLLECTION)) {
-                db.createObjectStore(STORES.COLLECTION, { keyPath: "originalId" });
+                cardsStore = db.createObjectStore(STORES.COLLECTION, {
+                    keyPath: "originalId"
+                });
+            } else {
+                cardsStore = transaction.objectStore(STORES.COLLECTION);
+            }
+
+            if (!cardsStore.indexNames.contains("collectionId")) {
+                cardsStore.createIndex("collectionId", "collectionId", {
+                    unique: false
+                });
+            }
+
+            if (!db.objectStoreNames.contains(STORES.COLLECTIONS)) {
+                db.createObjectStore(STORES.COLLECTIONS, {
+                    keyPath: "id"
+                });
             }
 
             if (!db.objectStoreNames.contains(STORES.INVENTORY)) {
@@ -41,7 +60,12 @@ export function openDatabase() {
             }
         };
 
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => {
+            const db = request.result;
+            db.onversionchange = () => db.close();
+            resolve(db);
+        };
+
         request.onerror = () => reject(request.error);
     });
 
@@ -55,7 +79,19 @@ export async function getAll(storeName) {
         const tx = db.transaction(storeName, "readonly");
         const request = tx.objectStore(storeName).getAll();
 
-        request.onsuccess = () => resolve(request.result);
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+export async function get(storeName, key) {
+    const db = await openDatabase();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readonly");
+        const request = tx.objectStore(storeName).get(key);
+
+        request.onsuccess = () => resolve(request.result ?? null);
         request.onerror = () => reject(request.error);
     });
 }
@@ -66,8 +102,10 @@ export async function put(storeName, value) {
     return new Promise((resolve, reject) => {
         const tx = db.transaction(storeName, "readwrite");
         tx.objectStore(storeName).put(value);
+
         tx.oncomplete = () => resolve(value);
         tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("Transação cancelada."));
     });
 }
 
@@ -77,7 +115,45 @@ export async function clearStore(storeName) {
     return new Promise((resolve, reject) => {
         const tx = db.transaction(storeName, "readwrite");
         tx.objectStore(storeName).clear();
+
         tx.oncomplete = resolve;
         tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("Transação cancelada."));
+    });
+}
+
+export async function replaceCollection({ collections = [], cards = [] }) {
+    const db = await openDatabase();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(
+            [STORES.COLLECTIONS, STORES.COLLECTION],
+            "readwrite"
+        );
+
+        const collectionsStore = tx.objectStore(STORES.COLLECTIONS);
+        const cardsStore = tx.objectStore(STORES.COLLECTION);
+
+        // O import de álbum substitui o banco da Coleção.
+        collectionsStore.clear();
+        cardsStore.clear();
+
+        for (const collection of collections) {
+            collectionsStore.put(collection);
+        }
+
+        for (const card of cards) {
+            cardsStore.put(card);
+        }
+
+        tx.oncomplete = () => resolve({
+            collections: collections.length,
+            cards: cards.length
+        });
+
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(
+            tx.error || new Error("Importação cancelada.")
+        );
     });
 }
