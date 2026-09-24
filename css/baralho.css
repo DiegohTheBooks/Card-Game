@@ -1,0 +1,20 @@
+.inventory-summary {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.inventory-summary div {
+    padding: 24px;
+    text-align: center;
+}
+
+.inventory-summary div + div { border-left: 1px solid var(--ap-border); }
+.inventory-summary span { display: block; color: var(--ap-muted); font-size: .8rem; }
+.inventory-summary strong { display: block; margin-top: 6px; font-size: 1.8rem; }
+
+@media (max-width: 600px) {
+    .inventory-summary { grid-template-columns: 1fr; }
+    .inventory-summary div + div { border-left: 0; border-top: 1px solid var(--ap-border); }
+}
