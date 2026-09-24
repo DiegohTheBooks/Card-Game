@@ -1,0 +1,1 @@
+import{openDatabase}from "../core/database.js";openDatabase().catch(console.error);
