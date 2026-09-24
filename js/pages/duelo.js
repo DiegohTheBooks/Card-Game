@@ -799,21 +799,33 @@ async function handlePlayCard() {
         return;
     }
 
-    const emptyLane =
-        state.playerBoard.findIndex(
+    const hasEmptyLane =
+        state.playerBoard.some(
             card => card === null
         );
 
-    if (emptyLane < 0) {
+    if (!hasEmptyLane) {
         state.status =
             "Seu campo está cheio.";
         render();
         return;
     }
 
-    await summonSelected(
-        emptyLane
-    );
+    /*
+     * IMPORTANTE:
+     * O botão não escolhe mais automaticamente a primeira lane.
+     * Ele apenas ativa a carta selecionada para posicionamento.
+     * O jogador precisa clicar na lane onde deseja colocá-la.
+     */
+    state.sacrificeMode = false;
+    state.selectedAttackerUid = null;
+
+    state.status =
+        "Escolha uma das lanes vazias para colocar " +
+        (findHandCard(state.selectedHandUid)?.name || "a carta") +
+        ".";
+
+    render();
 }
 
 async function handleAttackButton() {
