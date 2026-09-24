@@ -18,7 +18,6 @@ import {
 import {
     initializeStarterDeck
 } from "../player/deck.js";
-import "../cards/card-sheet.js";
 
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
@@ -68,7 +67,7 @@ function cardHtml(card, side, location, selected = false) {
              data-side="${side}"
              data-location="${location}"
              data-uid="${escapeHtml(card.uid || "")}"
-             title="Clique: selecionar e consultar · Duplo clique: ação">
+             title="Duplo clique: ação">
             ${image
                 ? '<img src="' + escapeHtml(image) + '" alt="' +
                   escapeHtml(card.name || "Carta") + '">'
@@ -334,16 +333,6 @@ function findBoardCard(uid) {
     }
 
     return null;
-}
-
-function openSheet(card) {
-    if (!card) return;
-
-    window.dispatchEvent(
-        new CustomEvent("cardduels:open-sheet", {
-            detail: card
-        })
-    );
 }
 
 function createDamageNumber(target, amount) {
@@ -623,7 +612,6 @@ async function handleCardDoubleClick(
             state.selectedHandUid = null;
             state.selectedAttackerUid = null;
             render();
-            openSheet(boardCard.card);
         }
     }
 }
@@ -667,7 +655,6 @@ async function handleArenaClick(event) {
                         state.sacrificeMode = false;
 
                         render();
-                        openSheet(card);
                         return;
                     }
 
@@ -684,7 +671,6 @@ async function handleArenaClick(event) {
                         selectedEnemyUid = null;
 
                         render();
-                        openSheet(boardCard.card);
                         return;
                     }
 
@@ -699,7 +685,6 @@ async function handleArenaClick(event) {
                         state.selectedAttackerUid = null;
 
                         render();
-                        openSheet(boardCard.card);
                     }
                 }, 180);
 
