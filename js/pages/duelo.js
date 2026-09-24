@@ -1,1 +1,625 @@
-import{openDatabase}from "../core/database.js";openDatabase().catch(console.error);
+import { getAll, get, STORES } from "../core/database.js";
+import { getCardImage, escapeHtml } from "../core/utils.js";
+import { createBattleState, playCard, sacrificeCard, endPlayerTurn, startNextRound, isBattleOver, getWinner } from "../battle/battle.js";
+import { resolveAttack } from "../battle/combat.js";
+import { runAiTurn } from "../battle/ai.js";
+import { completeStage, getStage } from "../campaign/campaign.js";
+import "../cards/card-sheet.js";
+
+const params = new URLSearchParams(window.location.search);
+const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
+const stageId = Number(params.get("stage")) || null;
+
+const els = {
+    playerHp: document.getElementById("playerHp"),
+    enemyHp: document.getElementById("enemyHp"),
+    playerMana: document.getElementById("playerMana"),
+    enemyMana: document.getElementById("enemyMana"),
+    round: document.getElementById("roundNumber"),
+    turn: document.getElementById("turnLabel"),
+    enemyName: document.getElementById("enemyName"),
+    enemyHandCount: document.getElementById("enemyHandCount"),
+    enemyDeckCount: document.getElementById("enemyDeckCount"),
+    enemyGraveCount: document.getElementById("enemyGraveCount"),
+    playerDeckCount: document.getElementById("playerDeckCount"),
+    playerGraveCount: document.getElementById("playerGraveCount"),
+    playerLanes: document.getElementById("playerLanes"),
+    enemyLanes: document.getElementById("enemyLanes"),
+    playerHand: document.getElementById("playerHand"),
+    status: document.getElementById("battleStatus"),
+    message: document.getElementById("arenaMessage"),
+    mode: document.getElementById("duelMode"),
+    endTurn: document.getElementById("endTurnButton"),
+    sacrifice: document.getElementById("sacrificeButton"),
+    resultOverlay: document.getElementById("battleResultOverlay"),
+    resultTitle: document.getElementById("battleResultTitle"),
+    resultText: document.getElementById("battleResultText"),
+    resultPrimary: document.getElementById("resultPrimary")
+};
+
+let state = null;
+let busy = false;
+
+function cardHtml(card, side, location, selected = false) {
+    const image = getCardImage(card);
+
+    return `
+        <div class="battle-card ${selected ? "is-selected" : ""}"
+             data-side="${side}"
+             data-location="${location}"
+             data-uid="${escapeHtml(card.uid || "")}"
+             title="Clique: ficha · Duplo clique: ação">
+            ${image
+                ? '<img src="' + escapeHtml(image) + '" alt="' +
+                  escapeHtml(card.name || "Carta") + '">'
+                : '<div class="battle-card-placeholder">?</div>'}
+            <div class="card-state">
+                <span>DEF ${Number(card.currentDef ?? card.def) || 0}</span>
+                <span>ATK ${Number(card.atk) || 0}</span>
+            </div>
+        </div>
+    `;
+}
+
+function renderHand() {
+    els.playerHand.innerHTML = "";
+
+    state.playerHand.forEach((card, index) => {
+        els.playerHand.insertAdjacentHTML(
+            "beforeend",
+            cardHtml(
+                card,
+                "player-hand",
+                index,
+                card.uid === state.selectedHandUid
+            )
+        );
+    });
+}
+
+function renderLanes(container, board, side) {
+    container.innerHTML = "";
+
+    board.forEach((card, laneIndex) => {
+        const lane = document.createElement("div");
+
+        lane.className = "lane " +
+            (side === "player" ? "player-lane" : "enemy-lane");
+
+        lane.dataset.lane = laneIndex;
+        lane.dataset.side = side;
+
+        if (side === "player" &&
+            state.selectedHandUid &&
+            !card &&
+            state.turn === "player") {
+            lane.classList.add("is-target");
+        }
+
+        if (card) {
+            lane.innerHTML = cardHtml(
+                card,
+                side,
+                laneIndex,
+                card.uid === state.selectedAttackerUid
+            );
+        } else {
+            lane.innerHTML = '<span class="lane-empty">+</span>';
+        }
+
+        container.appendChild(lane);
+    });
+}
+
+function renderHud() {
+    els.playerHp.textContent = state.playerHp;
+    els.enemyHp.textContent = state.enemyHp;
+
+    els.playerMana.textContent =
+        state.playerMana + " / " + state.playerMaxMana;
+
+    els.enemyMana.textContent =
+        state.enemyMana + " / " + state.enemyMaxMana;
+
+    els.round.textContent = state.round;
+    els.turn.textContent =
+        state.turn === "player" ? "SEU TURNO" : "TURNO INIMIGO";
+
+    els.enemyHandCount.textContent = state.enemyHand.length;
+    els.enemyDeckCount.textContent = state.enemyDeck.length;
+    els.enemyGraveCount.textContent = state.enemyGraveyard.length;
+
+    els.playerDeckCount.textContent = state.playerDeck.length;
+    els.playerGraveCount.textContent = state.playerGraveyard.length;
+
+    els.endTurn.disabled = state.turn !== "player" || busy;
+    els.sacrifice.disabled =
+        state.turn !== "player" ||
+        state.sacrificedThisRound ||
+        busy;
+}
+
+function render() {
+    if (!state) return;
+
+    renderHud();
+    renderHand();
+    renderLanes(els.playerLanes, state.playerBoard, "player");
+    renderLanes(els.enemyLanes, state.enemyBoard, "enemy");
+
+    els.status.textContent = state.status;
+    els.message.textContent =
+        state.selectedHandUid
+            ? "Escolha uma lane vazia para invocar."
+            : "Clique: ficha · Duplo clique: ação";
+}
+
+function findHandCard(uid) {
+    return state.playerHand.find(card => card.uid === uid);
+}
+
+function findHandIndex(uid) {
+    return state.playerHand.findIndex(card => card.uid === uid);
+}
+
+function findBoardCard(uid) {
+    for (const side of ["player", "enemy"]) {
+        const board = side === "player"
+            ? state.playerBoard
+            : state.enemyBoard;
+
+        const lane = board.findIndex(card => card?.uid === uid);
+
+        if (lane >= 0) return { side, lane, card: board[lane] };
+    }
+
+    return null;
+}
+
+function openSheet(card) {
+    window.dispatchEvent(
+        new CustomEvent("cardduels:open-sheet", {
+            detail: card
+        })
+    );
+}
+
+function createDamageNumber(target, amount) {
+    if (!target || !amount) return;
+
+    const number = document.createElement("div");
+    number.className = "damage-number";
+    number.textContent = "-" + amount;
+
+    target.appendChild(number);
+
+    setTimeout(() => number.remove(), 800);
+}
+
+function findCardElement(uid) {
+    return document.querySelector(
+        '.battle-card[data-uid="' +
+        CSS.escape(String(uid)) +
+        '"]'
+    );
+}
+
+function animateAttack(attackerUid, defenderUid, direct = false) {
+    const attacker = findCardElement(attackerUid);
+    const defender = defenderUid
+        ? findCardElement(defenderUid)
+        : null;
+
+    if (attacker) attacker.classList.add("anim-attack");
+
+    if (defender) {
+        defender.classList.add("anim-hit");
+
+        setTimeout(() => {
+            defender.classList.remove("anim-hit");
+        }, 360);
+    } else {
+        document.querySelector(".duel-player-hud.enemy")
+            ?.classList.add("anim-direct");
+
+        setTimeout(() => {
+            document.querySelector(".duel-player-hud.enemy")
+                ?.classList.remove("anim-direct");
+        }, 520);
+    }
+
+    return new Promise(resolve => setTimeout(resolve, direct ? 520 : 390));
+}
+
+async function performPlayerAttack(lane) {
+    if (busy || state.turn !== "player") return;
+
+    const card = state.playerBoard[lane];
+
+    if (!card) return;
+
+    busy = true;
+    state.selectedAttackerUid = card.uid;
+    state.status = "Ataque em andamento...";
+    render();
+
+    const target = state.enemyBoard[lane];
+    const result = resolveAttack(state, "player", lane);
+
+    await animateAttack(
+        result.attacker.uid,
+        result.defender?.uid || null,
+        result.type === "direct"
+    );
+
+    if (result.defender) {
+        const defenderElement = findCardElement(result.defender.uid);
+
+        if (defenderElement) {
+            createDamageNumber(defenderElement, result.damage);
+
+            if (result.destroyed) {
+                defenderElement.classList.add("anim-destroy");
+                await new Promise(resolve => setTimeout(resolve, 300));
+            }
+        }
+    }
+
+    state.selectedAttackerUid = null;
+
+    if (isBattleOver(state)) {
+        busy = false;
+        render();
+        finishBattle();
+        return;
+    }
+
+    state.status = result.type === "direct"
+        ? "Ataque direto!"
+        : result.destroyed
+            ? "O defensor foi destruído."
+            : "Ataque concluído.";
+
+    busy = false;
+    render();
+}
+
+async function handleCardDoubleClick(cardElement) {
+    if (busy || !state) return;
+
+    const side = cardElement.dataset.side;
+    const location = Number(cardElement.dataset.location);
+
+    if (side === "player-hand") {
+        if (state.turn !== "player") return;
+
+        const card = state.playerHand[location];
+
+        if (!card) return;
+
+        state.selectedHandUid =
+            state.selectedHandUid === card.uid ? null : card.uid;
+
+        state.status = state.selectedHandUid
+            ? "Carta preparada. Escolha uma lane vazia."
+            : "Invocação cancelada.";
+
+        render();
+        return;
+    }
+
+    if (side === "player") {
+        await performPlayerAttack(location);
+    }
+}
+
+async function handleArenaClick(event) {
+    const cardElement = event.target.closest(".battle-card");
+
+    if (cardElement) {
+        if (event.detail === 1) {
+            const uid = cardElement.dataset.uid;
+
+            setTimeout(() => {
+                if (!busy) {
+                    const handCard = findHandCard(uid);
+
+                    if (handCard) {
+                        openSheet(handCard);
+                        return;
+                    }
+
+                    const boardCard = findBoardCard(uid);
+
+                    if (boardCard) openSheet(boardCard.card);
+                }
+            }, 180);
+        }
+
+        return;
+    }
+
+    const lane = event.target.closest(".player-lane");
+
+    if (lane &&
+        state.selectedHandUid &&
+        state.turn === "player" &&
+        !state.playerBoard[Number(lane.dataset.lane)]) {
+        await summonSelected(Number(lane.dataset.lane));
+    }
+}
+
+async function summonSelected(laneIndex) {
+    if (busy || !state.selectedHandUid) return;
+
+    const handIndex = findHandIndex(state.selectedHandUid);
+
+    if (handIndex < 0) return;
+
+    busy = true;
+
+    try {
+        const card = playCard(
+            state,
+            "player",
+            handIndex,
+            laneIndex
+        );
+
+        state.selectedHandUid = null;
+        state.status = card.name + " foi invocado.";
+        render();
+
+        const element = findCardElement(card.uid);
+
+        if (element) {
+            element.classList.add("anim-summon");
+            await new Promise(resolve => setTimeout(resolve, 400));
+        }
+    } catch (error) {
+        state.status = error.message;
+    }
+
+    busy = false;
+    render();
+}
+
+async function handleSacrifice() {
+    if (busy || state.turn !== "player" || state.sacrificedThisRound) return;
+
+    if (!state.playerHand.length) {
+        state.status = "Sua mão está vazia.";
+        render();
+        return;
+    }
+
+    state.status = "Duplo clique em uma carta da mão para selecionar o sacrifício.";
+    state.sacrificeMode = true;
+    render();
+}
+
+async function handleHandClick(event) {
+    const cardElement = event.target.closest(".battle-card");
+
+    if (!cardElement || event.detail !== 1) return;
+
+    const uid = cardElement.dataset.uid;
+
+    setTimeout(() => {
+        if (busy) return;
+
+        const index = findHandIndex(uid);
+        const card = findHandCard(uid);
+
+        if (!card || index < 0) return;
+
+        if (state.sacrificeMode) {
+            try {
+                sacrificeCard(state, "player", index);
+                state.sacrificeMode = false;
+                state.selectedHandUid = null;
+                state.status = card.name + " foi sacrificada. +1 Mana máxima.";
+                render();
+            } catch (error) {
+                state.status = error.message;
+                render();
+            }
+        } else {
+            openSheet(card);
+        }
+    }, 180);
+}
+
+async function handleEndTurn() {
+    if (busy || state.turn !== "player") return;
+
+    busy = true;
+    state.sacrificeMode = false;
+    endPlayerTurn(state);
+    state.status = "Turno inimigo...";
+    render();
+
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    const actions = runAiTurn(state);
+
+    for (const action of actions) {
+        render();
+
+        if (action.type === "play") {
+            const element = findCardElement(action.card.uid);
+
+            if (element) {
+                element.classList.add("anim-summon");
+                await new Promise(resolve => setTimeout(resolve, 320));
+            }
+        }
+
+        if (action.type === "attack") {
+            await animateAttack(
+                action.result.attacker.uid,
+                action.result.defender?.uid || null,
+                action.result.type === "direct"
+            );
+
+            if (action.result.defender) {
+                const defenderElement =
+                    findCardElement(action.result.defender.uid);
+
+                if (defenderElement) {
+                    createDamageNumber(
+                        defenderElement,
+                        action.result.damage
+                    );
+                }
+            }
+
+            render();
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+
+        if (isBattleOver(state)) break;
+    }
+
+    if (isBattleOver(state)) {
+        busy = false;
+        render();
+        finishBattle();
+        return;
+    }
+
+    startNextRound(state);
+    busy = false;
+    render();
+}
+
+async function finishBattle() {
+    const winner = getWinner(state);
+
+    if (!winner) return;
+
+    if (winner === "player") {
+        els.resultTitle.textContent =
+            mode === "campaign" ? "Oponente derrotado" : "Vitória";
+
+        els.resultText.textContent =
+            mode === "campaign"
+                ? "A batalha terminou. Sua recompensa será definida na Campanha."
+                : "Você venceu o duelo.";
+
+        if (mode === "campaign" && stageId) {
+            const stage = getStage(stageId);
+
+            els.resultPrimary.textContent = "Escolher recompensa";
+            els.resultPrimary.href =
+                "campanha.html?reward=" + stageId;
+
+            try {
+                await completeStage(stageId);
+            } catch (error) {
+                els.resultText.textContent = error.message;
+                els.resultPrimary.textContent = "Voltar à campanha";
+                els.resultPrimary.href = "campanha.html";
+            }
+
+            if (stage) {
+                els.resultText.textContent +=
+                    " " + stage.name + " foi registrado como derrotado.";
+            }
+        }
+    } else if (winner === "enemy") {
+        els.resultTitle.textContent = "Derrota";
+        els.resultText.textContent =
+            mode === "campaign"
+                ? "Você pode tentar novamente. A derrota não consome sua recompensa."
+                : "O duelo terminou. Tente novamente.";
+        els.resultPrimary.textContent =
+            mode === "campaign" ? "Voltar à campanha" : "Continuar";
+        els.resultPrimary.href =
+            mode === "campaign" ? "campanha.html" : "index.html";
+    } else {
+        els.resultTitle.textContent = "Empate";
+        els.resultText.textContent = "Os dois jogadores chegaram a 0 PV.";
+        els.resultPrimary.textContent = "Continuar";
+        els.resultPrimary.href = "index.html";
+    }
+
+    els.resultOverlay.classList.add("is-open");
+    els.resultOverlay.setAttribute("aria-hidden", "false");
+}
+
+async function loadBattle() {
+    const collection = await getAll(STORES.COLLECTION);
+
+    if (!collection.length) {
+        throw new Error("A Coleção está vazia. Vá até Coleção e importe suas cartas.");
+    }
+
+    const deckSlots = await getAll(STORES.DECK);
+
+    if (deckSlots.length !== 25) {
+        throw new Error(
+            "Seu baralho precisa ter exatamente 25 cartas. " +
+            "Monte o deck antes de entrar no duelo."
+        );
+    }
+
+    const playerCards = [];
+
+    for (const slot of deckSlots.sort((a, b) => Number(a.slot) - Number(b.slot))) {
+        const card = collection.find(
+            item => item.originalId === slot.originalId
+        );
+
+        if (!card) {
+            throw new Error(
+                "Uma carta do seu baralho não foi encontrada na Coleção."
+            );
+        }
+
+        playerCards.push({ ...card });
+    }
+
+    let enemyHp = 20;
+    let enemyName = "OPONENTE";
+
+    if (mode === "campaign") {
+        const stage = getStage(stageId);
+
+        if (!stage) {
+            throw new Error("Oponente de campanha inválido.");
+        }
+
+        enemyHp = stage.hp;
+        enemyName = stage.name;
+        els.mode.textContent = "CAMPANHA · " + stage.number;
+    } else {
+        els.mode.textContent = "CASUAL";
+    }
+
+    state = await createBattleState({
+        playerCards,
+        enemyHp,
+        enemyCards: collection,
+        mode,
+        stageId
+    });
+
+    els.enemyName.textContent = enemyName;
+    render();
+}
+
+els.playerHand.addEventListener("click", handleHandClick);
+els.arena.addEventListener("click", handleArenaClick);
+
+els.endTurn.addEventListener("click", handleEndTurn);
+els.sacrifice.addEventListener("click", handleSacrifice);
+
+loadBattle().catch(error => {
+    console.error(error);
+
+    els.status.textContent = error.message;
+    els.message.textContent = error.message;
+    els.endTurn.disabled = true;
+    els.sacrifice.disabled = true;
+});
