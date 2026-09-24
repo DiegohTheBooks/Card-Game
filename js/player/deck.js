@@ -58,3 +58,55 @@ export async function removeFromDeck(slot) {
 export async function clearDeck() {
     return clearStore(STORES.DECK);
 }
+
+
+export async function initializeStarterDeck() {
+    const currentDeck = await getDeck();
+
+    if (currentDeck.length > 0) {
+        return currentDeck;
+    }
+
+    const inventory = await getAll(STORES.INVENTORY);
+    const cards = await getAll(STORES.COLLECTION);
+
+    if (!inventory.length || !cards.length) {
+        return [];
+    }
+
+    const cardById = new Map(
+        cards.map(card => [String(card.originalId), card])
+    );
+
+    const owned = [];
+
+    for (const item of inventory) {
+        const quantity = Math.max(0, Number(item.quantity) || 0);
+
+        if (!quantity || !cardById.has(String(item.originalId))) {
+            continue;
+        }
+
+        for (let copy = 0; copy < quantity; copy++) {
+            owned.push(cardById.get(String(item.originalId)));
+        }
+    }
+
+    const selected = owned.slice(0, MAX_DECK_SIZE);
+
+    if (selected.length < MAX_DECK_SIZE) {
+        throw new Error(
+            "O Inventário inicial possui menos de 25 cartas. " +
+            "Não foi possível montar o deck inicial."
+        );
+    }
+
+    for (let index = 0; index < selected.length; index++) {
+        await put(STORES.DECK, {
+            slot: index + 1,
+            originalId: selected[index].originalId
+        });
+    }
+
+    return getDeck();
+}
