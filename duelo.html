@@ -3,24 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>CARD DUELS — Duelo</title>
+
     <link rel="stylesheet" href="css/global.css">
     <link rel="stylesheet" href="css/duelo.css">
 </head>
 <body class="page-duelo">
     <main class="app-shell">
-        <header class="page-header compact">
+        <header class="page-header compact duel-header">
             <a class="back-link" href="index.html">← Menu</a>
-            <p class="eyebrow">CARD DUELS V6</p>
-            <h1>Duelo</h1>
-            <p class="subtitle">A arena será migrada da V5.6.2 nesta etapa.</p>
+
+            <div class="duel-title-row">
+                <div>
+                    <p class="eyebrow">CARD DUELS V6</p>
+                    <h1>Duelo</h1>
+                </div>
+
+                <div class="duel-mode" id="duelMode">CASUAL</div>
+            </div>
         </header>
-        <section class="placeholder-panel">
-            <span class="placeholder-icon">⚔</span>
-            <h2>Arena de Duelo</h2>
-            <p>A estrutura está pronta. As regras de combate serão conectadas aos módulos de batalha.</p>
+
+        <section class="duel-hud">
+            <div class="duel-player-hud">
+                <span>VOCÊ</span>
+                <strong id="playerHp">20</strong>
+                <small>PV</small>
+                <div class="mana-line">
+                    <span>MANA</span>
+                    <strong id="playerMana">2 / 2</strong>
+                </div>
+            </div>
+
+            <div class="duel-round">
+                <span>RODADA</span>
+                <strong id="roundNumber">1</strong>
+                <small id="turnLabel">SEU TURNO</small>
+            </div>
+
+            <div class="duel-player-hud enemy">
+                <span id="enemyName">OPONENTE</span>
+                <strong id="enemyHp">20</strong>
+                <small>PV</small>
+                <div class="mana-line">
+                    <span>MANA</span>
+                    <strong id="enemyMana">2 / 2</strong>
+                </div>
+            </div>
+        </section>
+
+        <section class="battle-counters">
+            <span>Mão inimiga: <strong id="enemyHandCount">0</strong></span>
+            <span>Deck inimigo: <strong id="enemyDeckCount">0</strong></span>
+            <span>Cemitério inimigo: <strong id="enemyGraveCount">0</strong></span>
+        </section>
+
+        <section class="arena" id="arena">
+            <div class="board-side enemy-side">
+                <div class="side-label">CAMPO INIMIGO</div>
+                <div class="lanes" id="enemyLanes"></div>
+            </div>
+
+            <div class="arena-message" id="arenaMessage">
+                Clique em uma carta para abrir a ficha.
+            </div>
+
+            <div class="board-side player-side">
+                <div class="side-label">SEU CAMPO</div>
+                <div class="lanes" id="playerLanes"></div>
+            </div>
+        </section>
+
+        <section class="hand-section">
+            <div class="hand-header">
+                <div>
+                    <span class="side-label">SUA MÃO</span>
+                    <p>Duplo clique em uma carta para prepará-la para invocação.</p>
+                </div>
+
+                <div class="battle-actions">
+                    <button class="button-secondary" id="sacrificeButton" type="button">
+                        Sacrificar
+                    </button>
+                    <button class="button-primary" id="endTurnButton" type="button">
+                        Encerrar turno
+                    </button>
+                </div>
+            </div>
+
+            <div class="hand" id="playerHand"></div>
+        </section>
+
+        <section class="battle-footer">
+            <span id="battleStatus">Carregando batalha...</span>
+            <span>Deck: <strong id="playerDeckCount">0</strong> · Cemitério: <strong id="playerGraveCount">0</strong></span>
         </section>
     </main>
+
+    <div class="battle-result-overlay" id="battleResultOverlay" aria-hidden="true">
+        <div class="battle-result">
+            <p class="eyebrow">CARD DUELS</p>
+            <h2 id="battleResultTitle">Vitória</h2>
+            <p id="battleResultText"></p>
+            <div class="result-actions">
+                <a class="button-primary" id="resultPrimary" href="index.html">Continuar</a>
+                <a class="button-secondary" href="duelo.html">Novo duelo</a>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="js/pages/duelo.js"></script>
+    <script type="module" src="js/cards/card-sheet.js"></script>
 </body>
 </html>
