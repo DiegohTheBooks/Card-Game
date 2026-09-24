@@ -12,12 +12,12 @@
 <body class="page-duelo">
     <main class="app-shell">
         <header class="page-header compact duel-header">
-            <a class="back-link" href="index.html">← Menu</a>
+            <div class="duel-topbar">
+                <a class="back-link" href="index.html">← Menu</a>
 
-            <div class="duel-title-row">
-                <div>
-                    <p class="eyebrow">CARD DUELS V6</p>
-                    <h1>Duelo</h1>
+                <div class="duel-brand">
+                    <p class="eyebrow">UM MUNDO ALÉM DAS PÁGINAS</p>
+                    <h1>CARD <span>DUELS</span></h1>
                 </div>
 
                 <div class="duel-mode" id="duelMode">CASUAL</div>
@@ -25,10 +25,12 @@
         </header>
 
         <section class="duel-hud">
-            <div class="duel-player-hud">
-                <span>VOCÊ</span>
-                <strong id="playerHp">20</strong>
-                <small>PV</small>
+            <div class="duel-player-hud player">
+                <div class="hud-main">
+                    <span>VOCÊ</span>
+                    <strong id="playerHp">20</strong>
+                    <small>PV</small>
+                </div>
                 <div class="mana-line">
                     <span>MANA</span>
                     <strong id="playerMana">2 / 2</strong>
@@ -42,9 +44,11 @@
             </div>
 
             <div class="duel-player-hud enemy">
-                <span id="enemyName">OPONENTE</span>
-                <strong id="enemyHp">20</strong>
-                <small>PV</small>
+                <div class="hud-main">
+                    <span id="enemyName">OPONENTE</span>
+                    <strong id="enemyHp">20</strong>
+                    <small>PV</small>
+                </div>
                 <div class="mana-line">
                     <span>MANA</span>
                     <strong id="enemyMana">2 / 2</strong>
@@ -52,46 +56,67 @@
             </div>
         </section>
 
-        <section class="battle-counters">
-            <span>Mão inimiga: <strong id="enemyHandCount">0</strong></span>
-            <span>Deck inimigo: <strong id="enemyDeckCount">0</strong></span>
-            <span>Cemitério inimigo: <strong id="enemyGraveCount">0</strong></span>
-        </section>
+        <section class="battle-main-grid" id="arena">
+            <aside class="side-sheet player-sheet" id="playerCardSheet">
+                <div class="sheet-empty">
+                    Selecione uma das suas cartas para consultar a ficha.
+                </div>
+            </aside>
 
-        <section class="arena" id="arena">
-            <div class="board-side enemy-side">
-                <div class="side-label">CAMPO INIMIGO</div>
-                <div class="lanes" id="enemyLanes"></div>
-            </div>
+            <div class="battle-layout">
+                <section class="field-zone">
+                    <div class="zone-title">
+                        <span>CAMPO OPONENTE</span>
+                        <div id="enemyCounters" class="battle-info"></div>
+                    </div>
+                    <div class="lanes" id="enemyLanes"></div>
+                </section>
 
-            <div class="arena-message" id="arenaMessage">
-                Clique em uma carta para abrir a ficha.
-            </div>
-
-            <div class="board-side player-side">
-                <div class="side-label">SEU CAMPO</div>
-                <div class="lanes" id="playerLanes"></div>
-            </div>
-        </section>
-
-        <section class="hand-section">
-            <div class="hand-header">
-                <div>
-                    <span class="side-label">SUA MÃO</span>
-                    <p>Duplo clique em uma carta para prepará-la para invocação.</p>
+                <div class="arena-message" id="arenaMessage">
+                    Clique para selecionar/consultar uma carta · Duplo clique para ação.
                 </div>
 
-                <div class="battle-actions">
-                    <button class="button-secondary" id="sacrificeButton" type="button">
-                        Sacrificar
-                    </button>
-                    <button class="button-primary" id="endTurnButton" type="button">
-                        Encerrar turno
-                    </button>
-                </div>
+                <section class="field-zone">
+                    <div class="zone-title">
+                        <span>SEU CAMPO</span>
+                        <div id="playerCounters" class="battle-info"></div>
+                    </div>
+                    <div class="lanes" id="playerLanes"></div>
+                </section>
+
+                <section class="hand-zone">
+                    <div class="zone-title hand-zone-title">
+                        <div>
+                            <span>SUA MÃO</span>
+                            <p>Selecione uma carta e use os comandos abaixo, ou use duplo clique.</p>
+                        </div>
+                    </div>
+
+                    <div class="hand" id="playerHand"></div>
+
+                    <div class="action-bar">
+                        <button class="primary" id="playCardButton" type="button">
+                            Jogar Carta
+                        </button>
+                        <button class="secondary" id="sacrificeButton" type="button">
+                            Sacrificar (+1 Mana)
+                        </button>
+                        <button class="primary" id="attackButton" type="button">
+                            Atacar
+                        </button>
+                        <button class="secondary" id="endTurnButton" type="button">
+                            Encerrar Rodada
+                        </button>
+                        <a class="danger-button" href="index.html">Sair</a>
+                    </div>
+                </section>
             </div>
 
-            <div class="hand" id="playerHand"></div>
+            <aside class="side-sheet enemy-sheet" id="enemyCardSheet">
+                <div class="sheet-empty">
+                    Selecione uma carta do adversário para consultar a ficha.
+                </div>
+            </aside>
         </section>
 
         <section class="battle-footer">
