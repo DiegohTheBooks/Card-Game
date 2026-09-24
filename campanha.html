@@ -13,14 +13,40 @@
             <a class="back-link" href="index.html">← Menu</a>
             <p class="eyebrow">CARD DUELS V6</p>
             <h1>História</h1>
-            <p class="subtitle">Campanha, mapa, fases e recompensas.</p>
+            <p class="subtitle">Dez oponentes, batalhas e recompensas.</p>
         </header>
-        <section class="placeholder-panel">
-            <span class="placeholder-icon">📖</span>
-            <h2>Mapa da História</h2>
-            <p>A campanha será ligada ao inventário do jogador e às recompensas nesta nova arquitetura.</p>
+
+        <section class="campaign-intro">
+            <div>
+                <span class="campaign-kicker">MAPA DA HISTÓRIA</span>
+                <h2>Escolha seu próximo desafio</h2>
+                <p>
+                    Cada oponente possui mais 5 PV que o anterior.
+                    Os adversários derrotados podem ser desafiados novamente.
+                </p>
+            </div>
+            <div class="campaign-rule">
+                <strong>Recompensa</strong>
+                <span>Derrote um oponente e escolha 1 carta entre 3 opções aleatórias.</span>
+            </div>
         </section>
+
+        <section id="campaignMap" class="campaign-map" aria-live="polite"></section>
     </main>
+
+    <div id="rewardOverlay" class="reward-overlay" aria-hidden="true">
+        <div class="reward-modal" role="dialog" aria-modal="true" aria-labelledby="rewardStageName">
+            <button id="closeReward" class="reward-close" type="button" aria-label="Fechar">×</button>
+
+            <span class="campaign-kicker">RECOMPENSA DA VITÓRIA</span>
+            <h2 id="rewardStageName">Oponente</h2>
+            <p>Escolha uma carta. As outras duas serão descartadas.</p>
+
+            <div id="rewardGrid" class="reward-grid"></div>
+            <p id="rewardStatus" class="reward-status"></p>
+        </div>
+    </div>
+
     <script type="module" src="js/pages/campanha.js"></script>
 </body>
 </html>
