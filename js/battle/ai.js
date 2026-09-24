@@ -1,0 +1,1 @@
+export function chooseAiAction(state){return{type:"pass",state}}
