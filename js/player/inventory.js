@@ -47,6 +47,7 @@ export async function initializeStarterInventory() {
     ];
 
     const used = new Set();
+    let starterTotal = 0;
 
     for (const [name, quantity] of starter) {
         const card = cards.find(item =>
@@ -58,10 +59,35 @@ export async function initializeStarterInventory() {
         if (!card) continue;
 
         used.add(card.originalId);
+        starterTotal += quantity;
+
         await put(STORES.INVENTORY, {
             originalId: card.originalId,
             quantity
         });
+    }
+
+    /*
+     * Se a Coleção importada não possuir as cartas-base antigas
+     * (Guardião, Cavaleiro, etc.), ainda precisamos deixar o jogador
+     * pronto para testar o jogo. Nesse caso, usamos as primeiras
+     * cartas importadas como inventário inicial até completar 25 cartas.
+     */
+    if (starterTotal < 25) {
+        await import("../core/database.js").then(async ({ clearStore }) => {
+            await clearStore(STORES.INVENTORY);
+        });
+
+        for (let index = 0; index < 25; index++) {
+            const card = cards[index % cards.length];
+
+            const current = await getInventoryEntry(card.originalId);
+
+            await put(STORES.INVENTORY, {
+                originalId: card.originalId,
+                quantity: Number(current?.quantity || 0) + 1
+            });
+        }
     }
 
     return getInventory();
