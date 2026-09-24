@@ -13,19 +13,59 @@
             <a class="back-link" href="index.html">← Menu</a>
             <p class="eyebrow">CARD DUELS V6</p>
             <h1>🃏 Baralho</h1>
-            <p class="subtitle">Aqui ficam as cartas que o jogador possui e o deck usado nas batalhas.</p>
+            <p class="subtitle">
+                Seu inventário e o baralho usado nas batalhas.
+            </p>
         </header>
 
         <section class="inventory-summary">
-            <div><span>Cartas possuídas</span><strong id="inventoryCount">0</strong></div>
-            <div><span>Deck atual</span><strong id="deckCount">0 / 25</strong></div>
+            <div>
+                <span>Cartas possuídas</span>
+                <strong id="inventoryCount">0</strong>
+            </div>
+            <div>
+                <span>Deck atual</span>
+                <strong id="deckCount">0 / 25</strong>
+            </div>
         </section>
 
-        <section class="placeholder-panel">
-            <h2>Meu Baralho</h2>
-            <p>O inventário e o deck serão separados da Coleção. As recompensas da campanha entrarão no inventário.</p>
+        <p id="deckStatus" class="deck-status">
+            Clique em uma carta do inventário para adicioná-la ao deck.
+        </p>
+
+        <section class="deck-layout">
+            <section class="panel deck-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-label">Batalha</p>
+                        <h2>Meu Baralho</h2>
+                    </div>
+                    <button id="clearDeckButton" class="button-secondary" type="button">
+                        Limpar
+                    </button>
+                </div>
+
+                <div id="deckGrid" class="deck-grid"></div>
+            </section>
+
+            <section class="panel inventory-panel">
+                <div class="section-heading">
+                    <div>
+                        <p class="section-label">Coleção pessoal</p>
+                        <h2>Inventário</h2>
+                    </div>
+                </div>
+
+                <p class="section-help">
+                    Você só pode colocar no deck a quantidade de cópias que possui.
+                </p>
+
+                <div id="inventoryGrid" class="inventory-grid"></div>
+            </section>
         </section>
     </main>
+
     <script type="module" src="js/pages/baralho.js"></script>
+    <script type="module" src="js/cards/card-sheet.js"></script>
 </body>
 </html>
