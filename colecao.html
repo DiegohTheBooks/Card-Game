@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARD DUELS — Coleção</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/colecao.css">
+</head>
+<body class="page-colecao">
+    <main class="app-shell">
+        <header class="page-header compact">
+            <a class="back-link" href="index.html">← Menu</a>
+            <p class="eyebrow">CARD DUELS V6</p>
+            <h1>📚 Coleção</h1>
+            <p class="subtitle">Todas as cartas do jogo. É aqui que o JSON será importado.</p>
+        </header>
+
+        <section class="collection-toolbar">
+            <div>
+                <h2>Banco de cartas</h2>
+                <p id="collectionStatus">Nenhuma carta carregada ainda.</p>
+            </div>
+            <label class="button-primary">
+                Importar JSON
+                <input id="jsonImportInput" type="file" accept=".json,application/json" hidden>
+            </label>
+        </section>
+
+        <section id="collectionGrid" class="card-grid" aria-live="polite">
+            <div class="empty-state">
+                <span>📚</span>
+                <h2>Coleção vazia</h2>
+                <p>Importe o arquivo otimizado do Álbum/Criador para começar.</p>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="js/pages/colecao.js"></script>
+</body>
+</html>
