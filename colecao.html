@@ -13,28 +13,74 @@
             <a class="back-link" href="index.html">← Menu</a>
             <p class="eyebrow">CARD DUELS V6</p>
             <h1>📚 Coleção</h1>
-            <p class="subtitle">Todas as cartas do jogo. É aqui que o JSON será importado.</p>
+            <p class="subtitle">
+                Todas as cartas disponíveis no banco do jogo.
+                O JSON otimizado do Álbum/Criador é importado aqui.
+            </p>
         </header>
 
-        <section class="collection-toolbar">
-            <div>
+        <section class="collection-toolbar panel">
+            <div class="toolbar-copy">
                 <h2>Banco de cartas</h2>
                 <p id="collectionStatus">Nenhuma carta carregada ainda.</p>
             </div>
-            <label class="button-primary">
-                Importar JSON
-                <input id="jsonImportInput" type="file" accept=".json,application/json" hidden>
-            </label>
-        </section>
 
-        <section id="collectionGrid" class="card-grid" aria-live="polite">
-            <div class="empty-state">
-                <span>📚</span>
-                <h2>Coleção vazia</h2>
-                <p>Importe o arquivo otimizado do Álbum/Criador para começar.</p>
+            <div class="toolbar-actions">
+                <label class="button-primary">
+                    📥 Importar JSON
+                    <input id="jsonImportInput" type="file"
+                        accept=".json,application/json" hidden>
+                </label>
+
+                <button id="refreshCollectionButton"
+                    class="button-secondary" type="button">
+                    ↻ Atualizar
+                </button>
             </div>
         </section>
+
+        <section class="collection-filters panel">
+            <div class="filter-field">
+                <label for="collectionFilter">Coleção</label>
+                <select id="collectionFilter">
+                    <option value="all">Todas as coleções</option>
+                </select>
+            </div>
+
+            <div class="filter-field">
+                <label for="cardSearch">Buscar carta</label>
+                <input id="cardSearch" type="search"
+                    placeholder="Nome do personagem..." autocomplete="off">
+            </div>
+        </section>
+
+        <section class="collection-summary">
+            <div class="summary-item">
+                <strong id="totalCards">0</strong>
+                <span>cartas</span>
+            </div>
+            <div class="summary-item">
+                <strong id="totalCollections">0</strong>
+                <span>coleções</span>
+            </div>
+            <div class="summary-item">
+                <strong id="visibleCards">0</strong>
+                <span>exibidas</span>
+            </div>
+        </section>
+
+        <section id="collectionGrid" class="card-grid" aria-live="polite"></section>
+
+        <section id="collectionEmpty" class="empty-state" hidden>
+            <span>📚</span>
+            <h2>Coleção vazia</h2>
+            <p>
+                Importe o arquivo otimizado do Álbum/Criador
+                para cadastrar as cartas no banco do jogo.
+            </p>
+        </section>
     </main>
+
     <script type="module" src="js/pages/colecao.js"></script>
 </body>
 </html>
