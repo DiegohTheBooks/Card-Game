@@ -1,0 +1,1 @@
+export function calculateAttack(attackerAtk,defenderDef){const atk=Number(attackerAtk)||0;const def=Number(defenderDef)||0;return{damage:atk,remainingDef:Math.max(0,def-atk)}}
