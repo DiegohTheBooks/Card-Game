@@ -12,6 +12,7 @@ import {
 import { resolveAttack } from "../battle/combat.js";
 import { runAiTurn } from "../battle/ai.js";
 import { completeStage, getStage } from "../campaign/campaign.js";
+import { addXp, getPlayerProfile } from "../player/profile.js";
 import {
     initializeStarterInventory
 } from "../player/inventory.js";
@@ -1013,15 +1014,31 @@ async function finishBattle() {
     if (!winner) return;
 
     if (winner === "player") {
-        els.resultTitle.textContent =
-            mode === "campaign"
-                ? "Oponente derrotado"
-                : "Vitória";
+        // V7 — valores iniciais de XP são deliberadamente simples.
+        // A curva e as recompensas podem ser refinadas após os testes.
+        const xpReward = mode === "campaign" ? 50 : 25;
+        const previousProfile = await getPlayerProfile();
+        const previousLevel = previousProfile.level;
+        const profile = await addXp(xpReward);
+        const leveledUp = profile.level > previousLevel;
 
-        els.resultText.textContent =
-            mode === "campaign"
-                ? "A batalha terminou. Sua recompensa será definida na Campanha."
-                : "Você venceu o duelo.";
+        if (mode === "campaign") {
+            els.resultTitle.textContent = "Oponente derrotado";
+            els.resultText.textContent =
+                "A batalha terminou. Você recebeu " +
+                xpReward + " XP." +
+                (leveledUp
+                    ? " Você alcançou o nível " + profile.level + "!"
+                    : "");
+        } else {
+            els.resultTitle.textContent = "Vitória";
+            els.resultText.textContent =
+                "Você venceu o duelo e recebeu " +
+                xpReward + " XP." +
+                (leveledUp
+                    ? " Você alcançou o nível " + profile.level + "!"
+                    : "");
+        }
 
         if (
             mode === "campaign" &&
@@ -1059,8 +1076,7 @@ async function finishBattle() {
                     " foi registrado como derrotado.";
             }
         }
-    } else if (winner === "enemy") {
-        els.resultTitle.textContent =
+    } else if (winner === "enemy") {        els.resultTitle.textContent =
             "Derrota";
 
         els.resultText.textContent =
