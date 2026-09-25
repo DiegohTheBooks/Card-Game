@@ -2,6 +2,7 @@ import { getAll, STORES } from "../core/database.js";
 import { getInventory, evolveInventoryCard } from "../player/inventory.js";
 import { getWallet, spendSilver, addSilver } from "../player/currency.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
+import { registerAchievementEvent } from "../player/achievements.js";
 
 export const EVOLUTION_COSTS = { T1: 50, T2: 100, T3: 200 };
 const TIER_ORDER = ["T1", "T2", "T3", "T4"];
@@ -189,6 +190,12 @@ async function performEvolution(fromTier) {
 
         const nextTier =
             TIER_ORDER[TIER_ORDER.indexOf(fromTier) + 1];
+
+        await registerAchievementEvent("evolution", {
+            fromTier,
+            toTier: nextTier,
+            originalId: selectedId
+        });
 
         showMessage(
             (card?.name || "Carta") +
