@@ -14,6 +14,7 @@ import { runAiTurn } from "../battle/ai.js";
 import { completeStage, getStage } from "../campaign/campaign.js";
 import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
+import { registerAchievementEvent } from "../player/achievements.js";
 import {
     initializeStarterInventory
 } from "../player/inventory.js";
@@ -1058,6 +1059,11 @@ async function finishBattle() {
         const rewardResult = await grantReward(rewardType);
         const { reward, profile, wallet } = rewardResult;
         const leveledUp = profile.level > previousLevel;
+        await registerAchievementEvent("battle", { won: true });
+
+        if (mode === "campaign") {
+            await registerAchievementEvent("campaign", { stageId });
+        }
 
         if (mode === "campaign") {
             els.resultTitle.textContent = "Oponente derrotado";
@@ -1119,7 +1125,10 @@ async function finishBattle() {
                     " foi registrado como derrotado.";
             }
         }
-    } else if (winner === "enemy") {        els.resultTitle.textContent =
+    } else if (winner === "enemy") {
+        await registerAchievementEvent("battle", { won: false });
+
+        els.resultTitle.textContent =
             "Derrota";
 
         els.resultText.textContent =
