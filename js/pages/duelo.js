@@ -9,7 +9,7 @@ import {
     isBattleOver,
     getWinner
 } from "../battle/battle.js";
-import { resolveAttack } from "../battle/combat.js";
+import { resolveAttack, getAttackBlockReason } from "../battle/combat.js";
 import { runAiTurn } from "../battle/ai.js";
 import { completeStage, getStage } from "../campaign/campaign.js";
 import { addXp, getPlayerProfile } from "../player/profile.js";
@@ -421,84 +421,89 @@ async function performPlayerAttack(lane) {
         return;
     }
 
-    const card =
-        state.playerBoard[lane];
+    const card = state.playerBoard[lane];
 
-    if (!card) return;
-
-    busy = true;
-
-    state.selectedAttackerUid =
-        card.uid;
-
-    state.selectedHandUid = null;
-    selectedEnemyUid = null;
-    state.status =
-        "Ataque em andamento...";
-
-    render();
-
-    const result =
-        resolveAttack(
-            state,
-            "player",
-            lane
-        );
-
-    await animateAttack(
-        result.attacker.uid,
-        result.defender?.uid || null,
-        result.type === "direct"
-    );
-
-    if (result.defender) {
-        const defenderElement =
-            findCardElement(
-                result.defender.uid
-            );
-
-        if (defenderElement) {
-            createDamageNumber(
-                defenderElement,
-                result.damage
-            );
-
-            if (result.destroyed) {
-                defenderElement.classList.add(
-                    "anim-destroy"
-                );
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            300
-                        )
-                );
-            }
-        }
-    }
-
-    state.selectedAttackerUid = null;
-
-    if (isBattleOver(state)) {
-        busy = false;
+    if (!card) {
+        state.status = "Não há carta nessa lane.";
         render();
-        finishBattle();
         return;
     }
 
-    state.status =
-        result.type === "direct"
-            ? "Ataque direto!"
-            : result.destroyed
-                ? "O defensor foi destruído."
-                : "Ataque concluído.";
+    const blockReason =
+        getAttackBlockReason(state, "player", lane);
+
+    if (blockReason) {
+        // A tentativa é tratada como uma ação inválida,
+        // não como uma exceção que pode travar o duelo.
+        state.selectedAttackerUid = card.uid;
+        state.status = blockReason;
+        render();
+        return;
+    }
+
+    busy = true;
+
+    state.selectedAttackerUid = card.uid;
+    state.selectedHandUid = null;
+    selectedEnemyUid = null;
+    state.status = "Ataque em andamento...";
+
+    render();
+
+    try {
+        const result = resolveAttack(state, "player", lane);
+
+        await animateAttack(
+            result.attacker.uid,
+            result.defender?.uid || null,
+            result.type === "direct"
+        );
+
+        if (result.defender) {
+            const defenderElement =
+                findCardElement(result.defender.uid);
+
+            if (defenderElement) {
+                createDamageNumber(
+                    defenderElement,
+                    result.damage
+                );
+
+                if (result.destroyed) {
+                    defenderElement.classList.add("anim-destroy");
+
+                    await new Promise(resolve =>
+                        setTimeout(resolve, 300)
+                    );
+                }
+            }
+        }
+
+        state.selectedAttackerUid = null;
+
+        if (isBattleOver(state)) {
+            busy = false;
+            render();
+            await finishBattle();
+            return;
+        }
+
+        state.status =
+            result.type === "direct"
+                ? "Ataque direto: -" + result.damage + " PV."
+                : result.destroyed
+                    ? "O defensor foi destruído."
+                    : "Ataque concluído.";
+    } catch (error) {
+        // Nunca deixar busy preso em true por uma tentativa inválida.
+        state.status =
+            error?.message ||
+            "Não foi possível realizar o ataque.";
+    }
 
     busy = false;
     render();
 }
-
 function clearPendingClick(uid) {
     const timer =
         pendingClickTimers.get(uid);
