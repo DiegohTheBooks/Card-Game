@@ -4,6 +4,7 @@ import {
     getProgress,
     savePlayerProfile
 } from "../player/profile.js";
+import { getWallet } from "../player/currency.js";
 
 openDatabase().catch(console.error);
 
@@ -17,6 +18,8 @@ const els = {
     xpBar: document.getElementById("profileXpBar"),
     hp: document.getElementById("profileHp"),
     mana: document.getElementById("profileMana"),
+    walletSilver: document.getElementById("walletSilver"),
+    walletGold: document.getElementById("walletGold"),
     dialog: document.getElementById("profileDialog"),
     edit: document.getElementById("editProfileButton"),
     cancel: document.getElementById("cancelProfileButton"),
@@ -27,6 +30,7 @@ const els = {
 };
 
 let profile = null;
+let wallet = null;
 
 function render() {
     if (!profile) return;
@@ -42,6 +46,11 @@ function render() {
     els.xpBar.style.width = progress.percent + "%";
     els.hp.textContent = profile.maxHp;
     els.mana.textContent = profile.startingMana;
+
+    if (wallet) {
+        els.walletSilver.textContent = wallet.silver;
+        els.walletGold.textContent = wallet.gold;
+    }
 }
 
 function openEditor() {
@@ -86,9 +95,10 @@ els.form.addEventListener("submit", async event => {
     }
 });
 
-getPlayerProfile()
-    .then(result => {
-        profile = result;
+Promise.all([getPlayerProfile(), getWallet()])
+    .then(([profileResult, walletResult]) => {
+        profile = profileResult;
+        wallet = walletResult;
         render();
     })
     .catch(error => {
