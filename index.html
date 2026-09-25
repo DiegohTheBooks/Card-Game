@@ -22,7 +22,28 @@
             <a class="menu-card" href="baralho.html"><span>🃏</span><strong>Baralho</strong><small>Minhas cartas e deck do jogador</small></a>
         </nav>
 
-        <p class="version-label">CARD DUELS V6 — MODULAR</p>
+        <section class="player-profile" aria-labelledby="profileTitle">
+  <div class="profile-avatar" id="profileAvatar">✦</div>
+  <div class="profile-main">
+    <p class="profile-kicker">PERFIL DO AUTOR</p>
+    <h2 id="profileTitle">Autor</h2>
+    <p class="profile-presentation" id="profilePresentation"></p>
+    <div class="profile-level-row"><strong>Nível <span id="profileLevel">0</span></strong><span><span id="profileXp">0</span> / <span id="profileXpNext">100</span> XP</span></div>
+    <div class="xp-bar" aria-label="Progresso de XP"><span id="profileXpBar"></span></div>
+    <div class="profile-stats"><div><strong id="profileHp">20</strong><span>HP</span></div><div><strong id="profileMana">2</strong><span>Mana inicial</span></div></div>
+  </div>
+  <button class="profile-edit" id="editProfileButton" type="button">Editar perfil</button>
+</section>
+<dialog class="profile-dialog" id="profileDialog">
+  <form method="dialog" id="profileForm">
+    <p class="profile-kicker">PERFIL DO AUTOR</p><h2>Editar perfil</h2>
+    <label>Nome<input id="profileNameInput" maxlength="40" autocomplete="off"></label>
+    <label>Avatar / emoji<input id="profileAvatarInput" maxlength="4" autocomplete="off" placeholder="✦"></label>
+    <label>Frase de apresentação<textarea id="profilePresentationInput" maxlength="180" rows="3"></textarea></label>
+    <div class="dialog-actions"><button value="cancel" type="button" id="cancelProfileButton">Cancelar</button><button value="default" class="button-primary" type="submit">Salvar</button></div>
+  </form>
+</dialog>
+<p class="version-label">CARD DUELS V7 — PROGRESSÃO DO JOGADOR</p>
     </main>
     <script type="module" src="js/pages/index.js"></script>
 </body>
