@@ -1,4 +1,5 @@
 import { getAll, get, put, STORES } from "../core/database.js";
+import { registerAchievementEvent } from "./achievements.js";
 
 const TIERS = ["T1", "T2", "T3", "T4"];
 
@@ -93,6 +94,10 @@ export async function addCardToInventory(originalId, quantity = 1) {
 
     if (amount > 0) {
         await discoverCard(originalId, "inventory");
+        const discovered = await getAll(STORES.CODEX);
+        await registerAchievementEvent("discovery", {
+            discoveredCards: discovered.length
+        });
     }
 
     return result;
