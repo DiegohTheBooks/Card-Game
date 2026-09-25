@@ -27,7 +27,7 @@ export function getAttackBlockReason(state, side, laneIndex) {
 
     // Investida é a única exceção à regra de invocação.
     const abilityText = String(
-        card.ability || card.abilityDescription || ""
+        card.abilityName || card.ability || card.abilityDescription || ""
     ).toLowerCase();
 
     const hasInvestida =
