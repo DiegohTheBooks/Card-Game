@@ -11,7 +11,7 @@ Esta branch contém a nova arquitetura modular do projeto **Card Duels**.
 - `baralho.html` — construção do baralho
 - `css/` — estilos separados por área
 - `js/` — módulos de banco de dados, cartas, inventário, baralho, batalha e campanha
-- `versoes/` — versões históricas e protótipos anteriores
+- `versions/` — versões históricas e protótipos anteriores
 
 ## Conceitos
 
@@ -22,3 +22,12 @@ Esta branch contém a nova arquitetura modular do projeto **Card Duels**.
 **Baralho** é a seleção de exatamente 25 cartas do inventário usada nas batalhas.
 
 As versões dentro de `versoes/` são mantidas como referência e não fazem parte da arquitetura principal do V6 Modular.
+
+
+## Documentação do projeto
+
+A pasta `docs/` contém a visão geral, regras do jogo, sistema de cartas, habilidades, evolução visual e arquitetura do V6 Modular.
+
+## Versões históricas
+
+As versões anteriores foram reorganizadas em `versions/` para permanecerem disponíveis como referência sem fazer parte da arquitetura principal.
