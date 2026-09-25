@@ -5,13 +5,15 @@
     margin-bottom: 24px;
 }
 
-.campaign-intro > div {
+.campaign-intro > div,
+.campaign-block {
     border: 1px solid var(--ap-border);
     border-radius: 18px;
     background: linear-gradient(145deg, rgba(36,33,59,.94), rgba(27,27,47,.94));
     box-shadow: var(--ap-shadow);
-    padding: 26px;
 }
+
+.campaign-intro > div { padding: 26px; }
 
 .campaign-kicker {
     color: var(--ap-gold);
@@ -20,9 +22,7 @@
     letter-spacing: .16em;
 }
 
-.campaign-intro h2 {
-    margin: 8px 0;
-}
+.campaign-intro h2 { margin: 8px 0; }
 
 .campaign-intro p {
     color: var(--ap-muted);
@@ -43,54 +43,99 @@
 
 .campaign-map {
     display: grid;
-    gap: 14px;
+    gap: 22px;
+}
+
+.campaign-block { overflow: hidden; }
+
+.campaign-block-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 26px;
+    border-bottom: 1px solid var(--ap-border);
+}
+
+.campaign-block-header h2 {
+    margin: 8px 0 4px;
+    font-family: "Playfair Display", serif;
+}
+
+.campaign-block-header p {
+    margin: 0;
+    color: var(--ap-muted);
+}
+
+.campaign-progress {
+    min-width: 130px;
+    text-align: center;
+    padding: 14px 18px;
+    border: 1px solid var(--ap-border);
+    border-radius: 14px;
+}
+
+.campaign-progress strong {
+    display: block;
+    color: var(--ap-gold);
+    font-size: 1.35rem;
+}
+
+.campaign-progress span {
+    color: var(--ap-muted);
+    font-size: .75rem;
+}
+
+.campaign-stages {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
 }
 
 .campaign-stage {
     display: grid;
-    grid-template-columns: 72px 1fr auto;
+    grid-template-columns: 58px 1fr auto;
     align-items: center;
-    gap: 20px;
-    padding: 18px;
+    gap: 18px;
+    padding: 15px;
     border: 1px solid var(--ap-border);
-    border-radius: 18px;
-    background: linear-gradient(145deg, rgba(36,33,59,.94), rgba(27,27,47,.94));
-    box-shadow: var(--ap-shadow);
+    border-radius: 15px;
+    background: rgba(17,17,31,.58);
 }
 
-.campaign-stage.defeated {
-    border-color: rgba(200,169,107,.55);
+.campaign-stage.defeated { border-color: rgba(200,169,107,.5); }
+
+.campaign-stage.boss-stage {
+    border-color: rgba(200,169,107,.85);
+    background: linear-gradient(145deg, rgba(55,45,45,.9), rgba(27,27,47,.94));
 }
 
 .stage-number {
-    width: 58px;
-    height: 58px;
+    width: 50px;
+    height: 50px;
     display: grid;
     place-items: center;
     border-radius: 50%;
     border: 1px solid var(--ap-gold);
     color: var(--ap-gold);
     font-family: "Playfair Display", serif;
-    font-size: 1.5rem;
+    font-size: 1.35rem;
 }
 
 .stage-info {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .stage-label {
     color: var(--ap-gold);
-    font-size: .68rem;
+    font-size: .65rem;
     font-weight: 700;
     letter-spacing: .14em;
 }
 
-.stage-info h2 {
-    margin: 0;
-    font-size: 1.25rem;
-}
+.stage-info h3 { margin: 0; font-size: 1.08rem; }
 
 .stage-info p,
 .stage-info small {
@@ -99,12 +144,12 @@
 }
 
 .stage-info strong {
-    margin-top: 5px;
-    font-size: .78rem;
+    margin-top: 4px;
+    font-size: .76rem;
 }
 
 .stage-button {
-    min-width: 170px;
+    min-width: 165px;
     text-align: center;
 }
 
@@ -118,9 +163,7 @@
     background: rgba(8,8,16,.82);
 }
 
-.reward-overlay.open {
-    display: grid;
-}
+.reward-overlay.open { display: grid; }
 
 .reward-modal {
     position: relative;
@@ -135,9 +178,7 @@
     text-align: center;
 }
 
-.reward-modal > p {
-    color: var(--ap-muted);
-}
+.reward-modal > p { color: var(--ap-muted); }
 
 .reward-close {
     position: absolute;
@@ -178,10 +219,7 @@
     border-color: var(--ap-gold);
 }
 
-.reward-card:disabled {
-    opacity: .55;
-    cursor: wait;
-}
+.reward-card:disabled { opacity: .55; cursor: wait; }
 
 .reward-card img {
     width: 100%;
@@ -190,24 +228,11 @@
     border-radius: 10px;
 }
 
-.reward-card-name {
-    font-weight: 700;
-}
-
-.reward-card-mana {
-    color: var(--ap-gold);
-    font-size: .82rem;
-}
-
-.reward-card-action {
-    color: var(--ap-muted);
-    font-size: .78rem;
-}
-
-.reward-status {
-    min-height: 22px;
-    margin-bottom: 0;
-}
+.reward-card-name { font-weight: 700; }
+.reward-card-work { color: var(--ap-muted); font-size: .78rem; }
+.reward-card-mana { color: var(--ap-gold); font-size: .82rem; }
+.reward-card-action { color: var(--ap-muted); font-size: .78rem; }
+.reward-status { min-height: 22px; margin-bottom: 0; }
 
 .reward-empty {
     grid-column: 1 / -1;
@@ -216,24 +241,23 @@
 }
 
 @media (max-width: 760px) {
-    .campaign-intro {
-        grid-template-columns: 1fr;
+    .campaign-intro { grid-template-columns: 1fr; }
+
+    .campaign-block-header {
+        align-items: flex-start;
+        flex-direction: column;
     }
 
-    .campaign-stage {
-        grid-template-columns: 58px 1fr;
-    }
+    .campaign-progress { width: 100%; }
+
+    .campaign-stage { grid-template-columns: 50px 1fr; }
 
     .stage-button {
         grid-column: 1 / -1;
         width: 100%;
     }
 
-    .reward-grid {
-        grid-template-columns: 1fr;
-    }
+    .reward-grid { grid-template-columns: 1fr; }
 
-    .reward-card img {
-        max-height: 420px;
-    }
+    .reward-card img { max-height: 420px; }
 }
