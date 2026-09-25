@@ -40,6 +40,11 @@ export function getAttackBlockReason(state, side, laneIndex) {
         return "Esta carta foi colocada neste turno e não pode atacar ainda.";
     }
 
+    // Cada carta só pode atacar uma vez por rodada.
+    if (card.attackedRound === state.round) {
+        return "Esta carta já atacou neste turno.";
+    }
+
     return null;
 }
 
@@ -69,7 +74,9 @@ export function resolveAttack(state, side, laneIndex) {
 
     const atk = Math.max(0, Number(attacker.atk) || 0);
 
-    // Cada carta pode realizar no máximo um ataque por turno.
+    // Registra o ataque antes de aplicar o dano.
+    // Isso impede que a IA ou a interface reutilize a mesma carta
+    // novamente durante a mesma rodada.
     attacker.attackedRound = state.round;
 
     if (!defender) {
