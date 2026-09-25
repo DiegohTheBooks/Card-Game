@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARD DUELS — Códex</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/codex.css">
+</head>
+<body class="page-codex">
+    <main class="app-shell">
+        <header class="page-header compact">
+            <a class="back-link" href="index.html">← Menu</a>
+            <p class="eyebrow">UM MUNDO ALÉM DAS PÁGINAS</p>
+            <h1>📖 Códex</h1>
+            <p class="subtitle">O registro dos personagens que você já descobriu.</p>
+        </header>
+
+        <section class="codex-hero panel">
+            <div>
+                <p class="section-label">REGISTRO DE PERSONAGENS</p>
+                <h2>Conhecimento acumulado</h2>
+                <p id="codexDescription">Descubra personagens ao obtê-los em sua Coleção.</p>
+            </div>
+            <div class="codex-progress">
+                <strong id="codexProgress">0 / 0</strong>
+                <span>descobertos</span>
+                <div class="codex-progress-bar"><span id="codexProgressBar"></span></div>
+            </div>
+        </section>
+
+        <section class="codex-filters panel">
+            <div class="filter-field">
+                <label for="codexCollectionFilter">Obra / coleção</label>
+                <select id="codexCollectionFilter">
+                    <option value="all">Todas as coleções</option>
+                </select>
+            </div>
+            <div class="filter-field">
+                <label for="codexSearch">Buscar personagem</label>
+                <input id="codexSearch" type="search" placeholder="Nome do personagem..." autocomplete="off">
+            </div>
+            <div class="codex-view-buttons" role="group" aria-label="Filtro de descoberta">
+                <button type="button" class="codex-view-button is-active" data-view="all">Todos</button>
+                <button type="button" class="codex-view-button" data-view="discovered">Descobertos</button>
+                <button type="button" class="codex-view-button" data-view="locked">Não descobertos</button>
+            </div>
+        </section>
+
+        <section id="codexStats" class="codex-stats"></section>
+        <section id="codexGrid" class="codex-grid" aria-live="polite"></section>
+
+        <section id="codexEmpty" class="empty-state" hidden>
+            <span>📖</span>
+            <h2>Códex vazio</h2>
+            <p>Importe suas cartas pela página Coleção para começar a registrar este universo.</p>
+        </section>
+    </main>
+
+    <script type="module" src="js/pages/codex.js"></script>
+</body>
+</html>
