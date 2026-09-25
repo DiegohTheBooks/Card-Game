@@ -1,0 +1,124 @@
+.page-achievements .app-shell {
+    max-width: 1180px;
+}
+
+.achievements-summary {
+    margin: 20px 0 26px;
+    padding: 20px 22px;
+    border: 1px solid rgba(201, 162, 39, .28);
+    background: rgba(27, 27, 47, .82);
+    border-radius: 14px;
+}
+
+.achievements-summary > div:first-child {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    align-items: baseline;
+}
+
+.achievements-summary span {
+    color: #c9a227;
+    font-size: .74rem;
+    letter-spacing: .14em;
+}
+
+.achievements-summary strong {
+    color: #f4ead0;
+}
+
+.achievements-progress,
+.achievement-bar {
+    height: 7px;
+    margin-top: 12px;
+    background: rgba(255,255,255,.08);
+    border-radius: 99px;
+    overflow: hidden;
+}
+
+.achievements-progress span,
+.achievement-bar span {
+    display: block;
+    height: 100%;
+    width: 0;
+    background: #c9a227;
+    border-radius: inherit;
+    transition: width .3s ease;
+}
+
+.achievements-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.achievement-card {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 16px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 14px;
+    background: rgba(17,17,31,.88);
+}
+
+.achievement-card.is-unlocked {
+    border-color: rgba(201,162,39,.45);
+}
+
+.achievement-icon {
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    border: 1px solid rgba(201,162,39,.35);
+    color: #c9a227;
+    font-size: 1.35rem;
+}
+
+.achievement-card.is-locked .achievement-icon {
+    opacity: .45;
+}
+
+.achievement-status {
+    font-size: .68rem;
+    letter-spacing: .13em;
+    color: #c9a227;
+}
+
+.achievement-content h2 {
+    margin: 4px 0 6px;
+}
+
+.achievement-content p {
+    margin: 0;
+    color: rgba(244,234,208,.72);
+    line-height: 1.5;
+}
+
+.achievement-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 9px;
+    font-size: .82rem;
+    color: rgba(244,234,208,.65);
+}
+
+.achievement-meta strong {
+    color: #c9a227;
+    font-weight: 600;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 26px;
+    color: #c9a227;
+}
+
+@media (max-width: 760px) {
+    .achievements-grid {
+        grid-template-columns: 1fr;
+    }
+}
