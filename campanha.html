@@ -11,23 +11,27 @@
     <main class="app-shell">
         <header class="page-header compact">
             <a class="back-link" href="index.html">← Menu</a>
-            <p class="eyebrow">CARD DUELS V6</p>
+            <p class="eyebrow">CARD DUELS V7 · HISTÓRIA</p>
             <h1>História</h1>
-            <p class="subtitle">Dez oponentes, batalhas e recompensas.</p>
+            <p class="subtitle">Quatro obras. Quarenta batalhas. Quatro Bosses com estilos próprios.</p>
         </header>
 
         <section class="campaign-intro">
             <div>
-                <span class="campaign-kicker">MAPA DA HISTÓRIA</span>
-                <h2>Escolha seu próximo desafio</h2>
+                <span class="campaign-kicker">MODO HISTÓRIA</span>
+                <h2>Explore os mundos de Além das Páginas</h2>
                 <p>
-                    Cada oponente possui mais 5 PV que o anterior.
-                    Os adversários derrotados podem ser desafiados novamente.
+                    Cada campanha possui 10 batalhas: 9 confrontos comuns e um Boss.
+                    Os adversários usam cartas da obra correspondente e os Bosses podem
+                    utilizar cartas de Mana 6.
                 </p>
             </div>
             <div class="campaign-rule">
-                <strong>Recompensa</strong>
-                <span>Derrote um oponente e escolha 1 carta entre 3 opções aleatórias.</span>
+                <strong>Recompensas por obra</strong>
+                <span>
+                    As vitórias geram opções de cartas pertencentes à obra da campanha.
+                    Bosses também podem oferecer cartas de Mana 6.
+                </span>
             </div>
         </section>
 
@@ -37,11 +41,9 @@
     <div id="rewardOverlay" class="reward-overlay" aria-hidden="true">
         <div class="reward-modal" role="dialog" aria-modal="true" aria-labelledby="rewardStageName">
             <button id="closeReward" class="reward-close" type="button" aria-label="Fechar">×</button>
-
-            <span class="campaign-kicker">RECOMPENSA DA VITÓRIA</span>
-            <h2 id="rewardStageName">Oponente</h2>
-            <p>Escolha uma carta. As outras duas serão descartadas.</p>
-
+            <span class="campaign-kicker" id="rewardCampaignName">CAMPANHA</span>
+            <h2 id="rewardStageName">Recompensa</h2>
+            <p>Escolha uma carta para adicionar ao seu Inventário.</p>
             <div id="rewardGrid" class="reward-grid"></div>
             <p id="rewardStatus" class="reward-status"></p>
         </div>
