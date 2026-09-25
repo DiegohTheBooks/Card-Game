@@ -66,7 +66,7 @@ function renderGrid() {
         const hasEvolution = ["T2", "T3", "T4"].some(tier => Number(entry.tiers?.[tier] || 0) > 0);
         const image = getCardImage(card);
         return `<button type="button" class="evolution-card ${String(card.originalId) === String(selectedId) ? "is-selected" : ""}" data-card-id="${escapeHtml(String(card.originalId))}">
-            <div class="evolution-card-art">${image ? <img src="${escapeHtml(image)}" alt="" loading="lazy"> : <span>?</span>}${hasEvolution ? <span class="evolution-badge">EVOLUÍDA</span> : ""}</div>
+            <div class="evolution-card-art">${image ? `<img src="${escapeHtml(image)}" alt="" loading="lazy">` : `<span>?</span>`}${hasEvolution ? `<span class="evolution-badge">EVOLUÍDA</span>` : ""}</div>
             <div class="evolution-card-body"><strong>${escapeHtml(card.name || "Carta")}</strong><span>${escapeHtml(card.work || "Sem coleção")}</span><small>${total} carta(s) no inventário</small></div>
         </button>`;
     }).join("");
