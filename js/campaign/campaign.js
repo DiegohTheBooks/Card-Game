@@ -88,7 +88,17 @@ export async function generateRewardOptions(stageId) {
     const progress = await getProgress();
 
     if (Array.isArray(progress.pendingRewards[stage.id])) {
-        return progress.pendingRewards[stage.id];
+        const pendingIds = progress.pendingRewards[stage.id].map(id => String(id));
+        const cards = await getAll(STORES.COLLECTION);
+
+        // O progresso salva apenas os originalIds para manter o estado leve.
+        // Ao recarregar a campanha, reconstruímos as recompensas como objetos
+        // completos, incluindo imagem, nome, atributos e habilidade.
+        return pendingIds
+            .map(originalId => cards.find(card =>
+                String(card.originalId) === originalId
+            ))
+            .filter(Boolean);
     }
 
     // As recompensas sempre são retiradas da Coleção real do jogo.
@@ -149,7 +159,10 @@ export async function claimReward(stageId, originalId) {
     const progress = await getProgress();
     const pending = progress.pendingRewards[stage.id] || [];
 
-    if (!pending.includes(originalId)) {
+    const normalizedOriginalId = String(originalId);
+    const pendingIds = pending.map(id => String(id));
+
+    if (!pendingIds.includes(normalizedOriginalId)) {
         throw new Error("Essa carta não está entre as recompensas disponíveis.");
     }
 
@@ -157,7 +170,7 @@ export async function claimReward(stageId, originalId) {
     // Isso evita colocar no Inventário uma carta que não exista mais.
     const cards = await getAll(STORES.COLLECTION);
     const card = cards.find(item =>
-        String(item.originalId) === String(originalId)
+        String(item.originalId) === normalizedOriginalId
     );
 
     if (!card) {
