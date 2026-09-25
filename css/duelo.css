@@ -776,3 +776,62 @@
         max-width: 205px;
     }
 }
+
+
+/* V7 — arena desktop usa a largura disponível da janela.
+   As laterais passam a ser parte real da interface, evitando
+   desperdiçar espaço horizontal enquanto a mão fica abaixo do campo. */
+@media (min-width: 1181px) {
+    .page-duelo .app-shell {
+        width: calc(100% - 32px);
+        max-width: 1680px;
+        padding-top: 20px;
+        padding-bottom: 24px;
+    }
+
+    .page-duelo .duel-header {
+        margin-bottom: 18px;
+    }
+
+    .page-duelo .battle-main-grid {
+        grid-template-columns: minmax(220px, 270px) minmax(0, 1fr) minmax(220px, 270px);
+        gap: 16px;
+    }
+
+    .page-duelo .side-sheet {
+        min-height: 0;
+        height: 100%;
+    }
+
+    .page-duelo .battle-layout {
+        min-width: 0;
+    }
+
+    .page-duelo .hand {
+        overflow: visible;
+        justify-content: center;
+    }
+
+    .page-duelo .hand .battle-card {
+        flex: 0 1 150px;
+    }
+}
+
+/* Em monitores altos, aproveitamos também o espaço vertical sem reduzir as cartas. */
+@media (min-width: 1181px) and (min-height: 900px) {
+    .page-duelo .app-shell {
+        padding-top: 28px;
+        padding-bottom: 34px;
+    }
+
+    .page-duelo .duel-header {
+        margin-bottom: 22px;
+    }
+}
+
+/* Em telas menores, a organização anterior continua para preservar usabilidade. */
+@media (max-width: 1180px) {
+    .page-duelo .app-shell {
+        width: min(100% - 20px, 1180px);
+    }
+}
