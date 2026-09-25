@@ -1,5 +1,20 @@
 import { getAll, get, put, STORES } from "../core/database.js";
 
+async function discoverCard(originalId, source = "inventory") {
+    if (originalId == null) return;
+
+    const id = String(originalId);
+    const existing = await get(STORES.CODEX, id);
+
+    if (existing) return existing;
+
+    return put(STORES.CODEX, {
+        originalId: id,
+        discoveredAt: new Date().toISOString(),
+        source
+    });
+}
+
 export async function getInventory() {
     return getAll(STORES.INVENTORY);
 }
@@ -14,10 +29,16 @@ export async function addCardToInventory(originalId, quantity = 1) {
     const nextQuantity =
         Math.max(0, Number(current?.quantity || 0) + Number(quantity));
 
-    return put(STORES.INVENTORY, {
+    const result = await put(STORES.INVENTORY, {
         originalId,
         quantity: nextQuantity
     });
+
+    if (nextQuantity > 0) {
+        await discoverCard(originalId, "inventory");
+    }
+
+    return result;
 }
 
 export async function setInventoryQuantity(originalId, quantity) {
@@ -65,6 +86,8 @@ export async function initializeStarterInventory() {
             originalId: card.originalId,
             quantity
         });
+
+        await discoverCard(card.originalId, "starter");
     }
 
     /*
@@ -87,6 +110,8 @@ export async function initializeStarterInventory() {
                 originalId: card.originalId,
                 quantity: Number(current?.quantity || 0) + 1
             });
+
+            await discoverCard(card.originalId, "starter-fallback");
         }
     }
 
