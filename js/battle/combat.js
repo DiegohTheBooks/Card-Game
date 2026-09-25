@@ -10,8 +10,10 @@ export function calculateAttack(attackerAtk, defenderDef) {
     };
 }
 
-export function canAttack(state, side, laneIndex) {
-    if (state.turn !== side) return false;
+export function getAttackBlockReason(state, side, laneIndex) {
+    if (state.turn !== side) {
+        return "Não é o seu turno.";
+    }
 
     const board = side === "player"
         ? state.playerBoard
@@ -19,11 +21,30 @@ export function canAttack(state, side, laneIndex) {
 
     const card = board[laneIndex];
 
-    if (!card || state.round <= Number(card.summonedRound)) {
-        return false;
+    if (!card) {
+        return "Não há carta nessa lane.";
     }
 
-    return true;
+    // Investida é a única exceção à regra de invocação.
+    const abilityText = String(
+        card.ability || card.abilityDescription || ""
+    ).toLowerCase();
+
+    const hasInvestida =
+        abilityText.includes("investida");
+
+    if (
+        !hasInvestida &&
+        state.round <= Number(card.summonedRound)
+    ) {
+        return "Esta carta foi colocada neste turno e não pode atacar ainda.";
+    }
+
+    return null;
+}
+
+export function canAttack(state, side, laneIndex) {
+    return getAttackBlockReason(state, side, laneIndex) === null;
 }
 
 export function resolveAttack(state, side, laneIndex) {
