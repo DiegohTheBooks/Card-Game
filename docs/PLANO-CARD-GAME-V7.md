@@ -179,13 +179,66 @@ Existir no banco não significa estar desbloqueada.
 Deck possui 25 cartas. A distribuição 15/15/10/10 é do pool de coleção, não da construção obrigatória de decks.
 
 ## 15. Campanha e Bosses
-Arquétipos inicialmente definidos:
-- Guardião: defensivo; recompensa relacionada ao Guardião.
-- Berserker: agressivo; recompensa relacionada ao Cavaleiro.
-- Caçador: cartas baratas/enxame; recompensa relacionada ao Mago.
-- Colosso: cartas caras e poderosas; recompensa relacionada ao Colosso.
 
-Bosses devem ser repetíveis e a estrutura poderá crescer com novos adversários.
+O Modo História é formado por **4 campanhas independentes**, cada uma ligada diretamente a uma obra:
+
+1. Academia Anthigonus
+2. As Chamas Sob a Coroa
+3. Entre a Luz e as Sombras
+4. Um Casamento Político
+
+Cada campanha possui **10 batalhas**:
+- 9 adversários comuns;
+- 1 Boss na décima batalha.
+
+Total do Modo História: **40 batalhas**.
+
+As campanhas são independentes e os adversários já derrotados podem ser enfrentados novamente.
+
+### Cartas por obra
+
+Cada carta criada no Criador possui a obra do personagem. A campanha utiliza esse campo para montar seus decks.
+
+Exemplo:
+- Campanha Academia Anthigonus → cartas de Academia Anthigonus.
+- Campanha As Chamas Sob a Coroa → cartas de As Chamas Sob a Coroa.
+- Campanha Entre a Luz e as Sombras → cartas de Entre a Luz e as Sombras.
+- Campanha Um Casamento Político → cartas de Um Casamento Político.
+
+Enquanto as cartas oficiais ainda não estiverem importadas, existe um fallback temporário de desenvolvimento para permitir testar as batalhas com a coleção de teste. Esse fallback deverá ser removido quando o banco oficial das quatro obras estiver pronto.
+
+### Progressão dos adversários
+
+Os 9 adversários comuns utilizam faixas de Mana progressivas, sem receber Mana 6.
+
+O décimo adversário é sempre o Boss e possui um estilo próprio:
+
+- **Guardião** — defensivo; prioriza DEF e cartas de proteção.
+- **Berserker** — agressivo; prioriza ATK e pressão.
+- **Caçador** — utiliza cartas mais baratas e pressão por quantidade.
+- **Colosso** — prioriza cartas caras, especialmente Mana 5 e 6.
+
+### Mana 6
+
+Bosses podem utilizar cartas de Mana 6.
+
+Mana 6 continua restrita aos sistemas especiais de conquista. Ela não aparece em adversários comuns ou recompensas normais.
+
+### Recompensas
+
+As recompensas de batalha são vinculadas à campanha:
+- adversário comum → opções de cartas da obra da campanha;
+- Boss → opções de cartas da obra, podendo incluir Mana 6.
+
+A recompensa é escolhida pelo jogador entre as opções geradas.
+
+### Arquitetura
+
+A campanha é orientada por dados:
+
+Campanha → Obra → Adversários → Estratégia → Deck permitido → Boss → Recompensas.
+
+O código não precisa conhecer personagens específicos. Quando novas cartas da obra são adicionadas à Coleção, elas podem automaticamente participar dos decks compatíveis com aquela campanha.
 
 ## 16. Recompensas e adversários
 Recompensas normais podem fornecer Mana 2–5.
