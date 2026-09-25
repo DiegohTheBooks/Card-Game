@@ -11,7 +11,7 @@ import {
 } from "../battle/battle.js";
 import { resolveAttack, getAttackBlockReason } from "../battle/combat.js";
 import { runAiTurn } from "../battle/ai.js";
-import { completeStage, getStage } from "../campaign/campaign.js";
+import { completeStage, getStage, getEnemyDeckCards } from "../campaign/campaign.js";
 import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
 import { registerAchievementEvent } from "../player/achievements.js";
@@ -1053,7 +1053,8 @@ async function finishBattle() {
     if (!winner) return;
 
     if (winner === "player") {
-        const rewardType = mode === "campaign" ? "CAMPAIGN" : "CASUAL";
+        const stage = mode === "campaign" ? getStage(stageId) : null;
+        const rewardType = mode === "campaign" ? (stage?.boss ? "BOSS" : "CAMPAIGN") : "CASUAL";
         const previousProfile = await getPlayerProfile();
         const previousLevel = previousProfile.level;
         const rewardResult = await grantReward(rewardType);
@@ -1066,7 +1067,7 @@ async function finishBattle() {
         }
 
         if (mode === "campaign") {
-            els.resultTitle.textContent = "Oponente derrotado";
+            els.resultTitle.textContent = stage?.boss ? "Boss derrotado" : "Oponente derrotado";
             els.resultText.textContent =
                 "Recompensa: +" + reward.xp + " XP, +" +
                 reward.silver + " Prata." +
@@ -1089,13 +1090,7 @@ async function finishBattle() {
                     : "");
         }
 
-        if (
-            mode === "campaign" &&
-            stageId
-        ) {
-            const stage =
-                getStage(stageId);
-
+        if (mode === "campaign" && stageId) {
             els.resultPrimary.textContent =
                 "Escolher recompensa";
 
@@ -1231,6 +1226,8 @@ async function loadBattle() {
 
     let enemyHp = 20;
     let enemyName = "OPONENTE";
+    let enemyCards = collection;
+    let aiStrategy = "balanced";
 
     if (mode === "campaign") {
         const stage =
@@ -1244,6 +1241,8 @@ async function loadBattle() {
 
         enemyHp = stage.hp;
         enemyName = stage.name;
+        aiStrategy = stage.strategy;
+        enemyCards = await getEnemyDeckCards(stage.id);
 
         els.mode.textContent =
             "CAMPANHA · " +
@@ -1257,10 +1256,12 @@ async function loadBattle() {
         await createBattleState({
             playerCards,
             enemyHp,
-            enemyCards: collection,
+            enemyCards,
             mode,
             stageId
         });
+
+    state.aiStrategy = aiStrategy;
 
     els.enemyName.textContent =
         enemyName;
