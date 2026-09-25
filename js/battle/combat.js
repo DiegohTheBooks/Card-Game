@@ -69,6 +69,9 @@ export function resolveAttack(state, side, laneIndex) {
 
     const atk = Math.max(0, Number(attacker.atk) || 0);
 
+    // Cada carta pode realizar no máximo um ataque por turno.
+    attacker.attackedRound = state.round;
+
     if (!defender) {
         if (side === "player") {
             state.enemyHp = Math.max(0, state.enemyHp - atk);
