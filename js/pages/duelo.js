@@ -12,7 +12,8 @@ import {
 import { resolveAttack, getAttackBlockReason } from "../battle/combat.js";
 import { runAiTurn } from "../battle/ai.js";
 import { completeStage, getStage } from "../campaign/campaign.js";
-import { addXp, getPlayerProfile } from "../player/profile.js";
+import { getPlayerProfile } from "../player/profile.js";
+import { grantReward } from "../player/rewards.js";
 import {
     initializeStarterInventory
 } from "../player/inventory.js";
@@ -1051,27 +1052,32 @@ async function finishBattle() {
     if (!winner) return;
 
     if (winner === "player") {
-        // V7 — valores iniciais de XP são deliberadamente simples.
-        // A curva e as recompensas podem ser refinadas após os testes.
-        const xpReward = mode === "campaign" ? 50 : 25;
+        const rewardType = mode === "campaign" ? "CAMPAIGN" : "CASUAL";
         const previousProfile = await getPlayerProfile();
         const previousLevel = previousProfile.level;
-        const profile = await addXp(xpReward);
+        const rewardResult = await grantReward(rewardType);
+        const { reward, profile, wallet } = rewardResult;
         const leveledUp = profile.level > previousLevel;
 
         if (mode === "campaign") {
             els.resultTitle.textContent = "Oponente derrotado";
             els.resultText.textContent =
-                "A batalha terminou. Você recebeu " +
-                xpReward + " XP." +
+                "Recompensa: +" + reward.xp + " XP, +" +
+                reward.silver + " Prata." +
+                (reward.gold > 0
+                    ? " +" + reward.gold + " Ouro."
+                    : "") +
                 (leveledUp
                     ? " Você alcançou o nível " + profile.level + "!"
                     : "");
         } else {
             els.resultTitle.textContent = "Vitória";
             els.resultText.textContent =
-                "Você venceu o duelo e recebeu " +
-                xpReward + " XP." +
+                "Recompensa: +" + reward.xp + " XP, +" +
+                reward.silver + " Prata." +
+                (reward.gold > 0
+                    ? " +" + reward.gold + " Ouro."
+                    : "") +
                 (leveledUp
                     ? " Você alcançou o nível " + profile.level + "!"
                     : "");
