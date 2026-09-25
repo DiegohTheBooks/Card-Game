@@ -650,6 +650,38 @@ async function handleArenaClick(event) {
 
                         if (!card) return;
 
+                        // Em modo de sacrifício, um clique na carta
+                        // confirma imediatamente o sacrifício.
+                        // Antes, este bloco desligava sacrificeMode
+                        // antes que a ação pudesse acontecer.
+                        if (
+                            state.sacrificeMode &&
+                            state.turn === "player"
+                        ) {
+                            try {
+                                sacrificeCard(
+                                    state,
+                                    "player",
+                                    findHandIndex(uid)
+                                );
+
+                                state.sacrificeMode = false;
+                                state.selectedHandUid = null;
+                                state.selectedAttackerUid = null;
+
+                                state.status =
+                                    card.name +
+                                    " foi sacrificada. +1 Mana máxima e +1 Mana atual.";
+                            } catch (error) {
+                                state.status =
+                                    error?.message ||
+                                    "Não foi possível sacrificar esta carta.";
+                            }
+
+                            render();
+                            return;
+                        }
+
                         state.selectedHandUid =
                             state.selectedHandUid === uid
                                 ? null
