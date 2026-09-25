@@ -6,7 +6,8 @@ function cloneCard(card, uid) {
         ...card,
         uid,
         currentDef: Number(card.def) || 0,
-        summonedRound: null
+        summonedRound: null,
+        attackedRound: null
     };
 }
 
@@ -142,6 +143,7 @@ export function playCard(state, side, handIndex, laneIndex) {
 
     card.currentDef = Number(card.def) || 0;
     card.summonedRound = state.round;
+    card.attackedRound = null;
     board[laneIndex] = card;
 
     return card;
