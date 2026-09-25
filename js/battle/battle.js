@@ -1,4 +1,5 @@
 import { getAll, STORES } from "../core/database.js";
+import { getPlayerProfile } from "../player/profile.js";
 
 function cloneCard(card, uid) {
     return {
@@ -52,14 +53,17 @@ export async function createBattleState({
         ? enemyCards
         : collection;
 
+    const playerProfile = await getPlayerProfile();
+
     const state = {
         mode,
         stageId: stageId ? Number(stageId) : null,
-        playerHp: 20,
+        playerHp: playerProfile.maxHp,
+        playerMaxHp: playerProfile.maxHp,
         enemyHp: Number(enemyHp) || 20,
 
-        playerMaxMana: 2,
-        playerMana: 2,
+        playerMaxMana: playerProfile.startingMana,
+        playerMana: playerProfile.startingMana,
         enemyMaxMana: 2,
         enemyMana: 2,
 
