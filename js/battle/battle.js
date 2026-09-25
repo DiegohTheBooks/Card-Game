@@ -67,6 +67,7 @@ export async function createBattleState({
         playerMana: playerProfile.startingMana,
         enemyMaxMana: 2,
         enemyMana: 2,
+        aiStrategy: "balanced",
 
         round: 1,
         turn: "player",
