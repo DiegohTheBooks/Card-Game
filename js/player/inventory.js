@@ -1,5 +1,7 @@
 import { getAll, get, put, STORES } from "../core/database.js";
 
+const TIERS = ["T1", "T2", "T3", "T4"];
+
 async function discoverCard(originalId, source = "inventory") {
     if (originalId == null) return;
 
@@ -15,26 +17,81 @@ async function discoverCard(originalId, source = "inventory") {
     });
 }
 
+function normalizeTierQuantities(entry = {}) {
+    const tiers = entry.tiers || {};
+    const legacyQuantity = Math.max(0, Number(entry.quantity) || 0);
+
+    return {
+        T1: Math.max(0, Number(tiers.T1 ?? legacyQuantity) || 0),
+        T2: Math.max(0, Number(tiers.T2) || 0),
+        T3: Math.max(0, Number(tiers.T3) || 0),
+        T4: Math.max(0, Number(tiers.T4) || 0)
+    };
+}
+
+function totalTierQuantity(tiers) {
+    return TIERS.reduce(
+        (total, tier) => total + Math.max(0, Number(tiers[tier]) || 0),
+        0
+    );
+}
+
+function normalizeInventoryEntry(entry) {
+    const tiers = normalizeTierQuantities(entry);
+
+    return {
+        ...entry,
+        originalId: entry.originalId,
+        quantity: totalTierQuantity(tiers),
+        tiers
+    };
+}
+
+async function migrateEntry(entry) {
+    const normalized = normalizeInventoryEntry(entry);
+
+    const changed =
+        !entry.tiers ||
+        Number(entry.quantity) !== normalized.quantity ||
+        TIERS.some(tier =>
+            Number(entry.tiers?.[tier] || 0) !== normalized.tiers[tier]
+        );
+
+    if (changed) {
+        await put(STORES.INVENTORY, normalized);
+    }
+
+    return normalized;
+}
+
 export async function getInventory() {
-    return getAll(STORES.INVENTORY);
+    const entries = await getAll(STORES.INVENTORY);
+    return Promise.all(entries.map(migrateEntry));
 }
 
 export async function getInventoryEntry(originalId) {
-    return get(STORES.INVENTORY, originalId);
+    const entry = await get(STORES.INVENTORY, originalId);
+
+    if (!entry) return null;
+
+    return migrateEntry(entry);
 }
 
 export async function addCardToInventory(originalId, quantity = 1) {
     const current = await getInventoryEntry(originalId);
+    const tiers = normalizeTierQuantities(current || {});
+    const amount = Number(quantity) || 0;
 
-    const nextQuantity =
-        Math.max(0, Number(current?.quantity || 0) + Number(quantity));
+    tiers.T1 = Math.max(0, tiers.T1 + amount);
 
     const result = await put(STORES.INVENTORY, {
+        ...(current || {}),
         originalId,
-        quantity: nextQuantity
+        quantity: totalTierQuantity(tiers),
+        tiers
     });
 
-    if (nextQuantity > 0) {
+    if (amount > 0) {
         await discoverCard(originalId, "inventory");
     }
 
@@ -42,9 +99,47 @@ export async function addCardToInventory(originalId, quantity = 1) {
 }
 
 export async function setInventoryQuantity(originalId, quantity) {
+    const current = await getInventoryEntry(originalId);
+    const tiers = normalizeTierQuantities(current || {});
+
+    tiers.T1 = Math.max(0, Number(quantity) || 0);
+
     return put(STORES.INVENTORY, {
+        ...(current || {}),
         originalId,
-        quantity: Math.max(0, Number(quantity) || 0)
+        quantity: totalTierQuantity(tiers),
+        tiers
+    });
+}
+
+export async function evolveInventoryCard(originalId, fromTier) {
+    const tier = String(fromTier || "").toUpperCase();
+    const tierIndex = TIERS.indexOf(tier);
+
+    if (tierIndex < 0 || tierIndex >= TIERS.length - 1) {
+        throw new Error("Essa evolução não é válida.");
+    }
+
+    const current = await getInventoryEntry(originalId);
+
+    if (!current) {
+        throw new Error("Carta não encontrada no inventário.");
+    }
+
+    const tiers = normalizeTierQuantities(current);
+
+    if (tiers[tier] < 2) {
+        throw new Error("Você precisa de 2 cópias da mesma evolução.");
+    }
+
+    tiers[tier] -= 2;
+    tiers[TIERS[tierIndex + 1]] += 1;
+
+    return put(STORES.INVENTORY, {
+        ...current,
+        originalId,
+        quantity: totalTierQuantity(tiers),
+        tiers
     });
 }
 
@@ -84,18 +179,18 @@ export async function initializeStarterInventory() {
 
         await put(STORES.INVENTORY, {
             originalId: card.originalId,
-            quantity
+            quantity,
+            tiers: {
+                T1: quantity,
+                T2: 0,
+                T3: 0,
+                T4: 0
+            }
         });
 
         await discoverCard(card.originalId, "starter");
     }
 
-    /*
-     * Se a Coleção importada não possuir as cartas-base antigas
-     * (Guardião, Cavaleiro, etc.), ainda precisamos deixar o jogador
-     * pronto para testar o jogo. Nesse caso, usamos as primeiras
-     * cartas importadas como inventário inicial até completar 25 cartas.
-     */
     if (starterTotal < 25) {
         await import("../core/database.js").then(async ({ clearStore }) => {
             await clearStore(STORES.INVENTORY);
@@ -103,12 +198,15 @@ export async function initializeStarterInventory() {
 
         for (let index = 0; index < 25; index++) {
             const card = cards[index % cards.length];
-
             const current = await getInventoryEntry(card.originalId);
+            const tiers = normalizeTierQuantities(current || {});
+
+            tiers.T1 += 1;
 
             await put(STORES.INVENTORY, {
                 originalId: card.originalId,
-                quantity: Number(current?.quantity || 0) + 1
+                quantity: totalTierQuantity(tiers),
+                tiers
             });
 
             await discoverCard(card.originalId, "starter-fallback");
