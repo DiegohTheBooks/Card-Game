@@ -1,6 +1,6 @@
 const DB_NAME = "CardDuelsV6";
-// V7 mantém o banco existente e apenas adiciona novas estruturas.
-const DB_VERSION = 7;
+// V7 mantém o banco existente e V8 adiciona índices para coleção/categoria.
+const DB_VERSION = 8;
 
 export const STORES = {
     COLLECTION: "cardCollection",
@@ -43,9 +43,41 @@ export function openDatabase() {
                 });
             }
 
+            if (!cardsStore.indexNames.contains("collectionName")) {
+                cardsStore.createIndex("collectionName", "collectionName", {
+                    unique: false
+                });
+            }
+
+            if (!cardsStore.indexNames.contains("categoryId")) {
+                cardsStore.createIndex("categoryId", "categoryId", {
+                    unique: false
+                });
+            }
+
+            if (!cardsStore.indexNames.contains("categoryName")) {
+                cardsStore.createIndex("categoryName", "categoryName", {
+                    unique: false
+                });
+            }
+
             if (!db.objectStoreNames.contains(STORES.COLLECTIONS)) {
                 db.createObjectStore(STORES.COLLECTIONS, {
                     keyPath: "id"
+                });
+            }
+
+            const collectionsStore = transaction.objectStore(STORES.COLLECTIONS);
+
+            if (!collectionsStore.indexNames.contains("parentId")) {
+                collectionsStore.createIndex("parentId", "parentId", {
+                    unique: false
+                });
+            }
+
+            if (!collectionsStore.indexNames.contains("nodeType")) {
+                collectionsStore.createIndex("nodeType", "nodeType", {
+                    unique: false
                 });
             }
 
@@ -160,7 +192,8 @@ export async function replaceCollection({ collections = [], cards = [] }) {
         const collectionsStore = tx.objectStore(STORES.COLLECTIONS);
         const cardsStore = tx.objectStore(STORES.COLLECTION);
 
-        // O import de álbum substitui o banco da Coleção.
+        // O import completo do Álbum substitui apenas o catálogo de cartas.
+        // Inventário, deck, progresso, campanha e perfil ficam intactos.
         collectionsStore.clear();
         cardsStore.clear();
 
