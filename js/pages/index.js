@@ -73,7 +73,7 @@ function closeEditor() {
     }
 }
 
-els.edit.addEventListener("click", openEditor);
+els.edit.addEventListener("click", () => { window.location.href = "perfil.html"; });
 els.cancel.addEventListener("click", closeEditor);
 
 els.form.addEventListener("submit", async event => {
