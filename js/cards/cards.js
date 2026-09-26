@@ -41,7 +41,8 @@ export function normalizeCard(raw = {}) {
 
     const collectionName = String(firstValue(
         raw.collectionName,
-        collectionId ? "" : raw.work,
+        raw.work,
+        raw.collection,
         ""
     ));
 
