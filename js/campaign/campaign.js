@@ -41,6 +41,13 @@ const CAMPAIGN_DEFINITIONS = [
         work: "Um Casamento Político",
         source: { collectionName: "Um Casamento Político" },
         boss: { name: "Colosso", strategy: "colossus", hp: 50, minMana: 4, maxMana: 6 }
+    },
+    {
+        id: "one-piece",
+        name: "One Piece",
+        work: "One Piece",
+        source: { collectionName: "One Piece" },
+        boss: { name: "Imperador dos Mares", strategy: "offensive", hp: 50, minMana: 4, maxMana: 6 }
     }
 
     /*
@@ -259,10 +266,6 @@ export async function saveStoryDeck(originalIds) {
         throw new Error(
             "A seleção contém cartas inválidas ou pertencentes a Boss, Evento ou Loja."
         );
-    }
-
-    if (await hasStoryDeck()) {
-        throw new Error("O Baralho da História já foi definido.");
     }
 
     const { addCardToInventory } = await import("../player/inventory.js");
