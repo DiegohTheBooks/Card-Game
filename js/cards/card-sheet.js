@@ -116,9 +116,21 @@ function ensureSheet() {
         }
 
         .card-sheet-work {
-            margin: 8px 0 26px;
+            margin: 8px 0 8px;
             color: var(--ap-muted);
             font-size: .92rem;
+        }
+
+        .card-sheet-origin {
+            margin: 0 0 26px;
+            color: var(--ap-muted);
+            font-size: .72rem;
+            line-height: 1.5;
+        }
+
+        .card-sheet-origin strong {
+            color: var(--ap-gold);
+            font-weight: 600;
         }
 
         .card-sheet-stats {
@@ -219,6 +231,7 @@ function ensureSheet() {
                 <p class="card-sheet-label">Ficha do personagem</p>
                 <h2 class="card-sheet-title" id="cardSheetTitle"></h2>
                 <p class="card-sheet-work" id="cardSheetWork"></p>
+                <p class="card-sheet-origin" id="cardSheetOrigin"></p>
 
                 <div class="card-sheet-stats">
                     <div class="card-sheet-stat">
@@ -282,7 +295,26 @@ export function openCardSheet(card) {
         card.name || "Personagem";
 
     document.getElementById("cardSheetWork").textContent =
-        card.work || "Sem obra/coleção informada";
+        card.work || card.collectionName || "Sem obra/coleção informada";
+
+    const path = Array.isArray(card.path)
+        ? card.path.filter(Boolean).join(" / ")
+        : "";
+
+    const collection =
+        card.collectionName || card.work || "Sem coleção";
+
+    const category =
+        card.categoryName || "";
+
+    document.getElementById("cardSheetOrigin").innerHTML =
+        "<strong>Coleção:</strong> " + escapeHtml(collection) +
+        (category
+            ? " · <strong>Categoria:</strong> " + escapeHtml(category)
+            : "") +
+        (path && path !== collection
+            ? "<br><strong>Caminho:</strong> " + escapeHtml(path)
+            : "");
 
     document.getElementById("cardSheetMana").textContent =
         Number(card.mana) || 0;
