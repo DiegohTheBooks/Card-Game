@@ -1,4 +1,4 @@
-import { getAll, get, put, STORES } from "../core/database.js";
+import { getAll, get, put, remove, STORES } from "../core/database.js";
 import { addCardToInventory } from "../player/inventory.js";
 
 export const CAMPAIGN_VERSION = 4;
@@ -242,6 +242,10 @@ export async function getStoryDeckCards() {
 
 export async function hasStoryDeck() {
     return Boolean(await getStoryDeckCards());
+}
+
+export async function clearStoryDeck() {
+    return remove(STORES.PROGRESS, STORY_DECK_KEY);
 }
 
 export async function saveStoryDeck(originalIds) {
