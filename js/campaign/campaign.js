@@ -1,13 +1,73 @@
 import { getAll, get, put, STORES } from "../core/database.js";
 import { addCardToInventory } from "../player/inventory.js";
 
-export const CAMPAIGN_VERSION = 3;
+export const CAMPAIGN_VERSION = 4;
 
+/*
+ * Cada campanha aponta para uma fonte do Álbum.
+ *
+ * collectionId é preferencial quando conhecido.
+ * collectionName permite que a campanha continue funcionando
+ * mesmo quando o ID da coleção muda entre bases.
+ *
+ * categoryId/categoryName são opcionais. Quando informados,
+ * inimigos e recompensas ficam restritos à categoria indicada.
+ */
 const CAMPAIGN_DEFINITIONS = [
-    { id: "academia-anthigonus", name: "Academia Anthigonus", work: "Academia Anthigonus", boss: { name: "Guardião", strategy: "guardian", hp: 45, minMana: 3, maxMana: 6 } },
-    { id: "as-chamas-sob-a-coroa", name: "As Chamas Sob a Coroa", work: "As Chamas Sob a Coroa", boss: { name: "Berserker", strategy: "berserker", hp: 45, minMana: 3, maxMana: 6 } },
-    { id: "entre-a-luz-e-as-sombras", name: "Entre a Luz e as Sombras", work: "Entre a Luz e as Sombras", boss: { name: "Caçador", strategy: "hunter", hp: 45, minMana: 3, maxMana: 6 } },
-    { id: "um-casamento-politico", name: "Um Casamento Político", work: "Um Casamento Político", boss: { name: "Colosso", strategy: "colossus", hp: 50, minMana: 4, maxMana: 6 } }
+    {
+        id: "academia-anthigonus",
+        name: "Academia Anthigonus",
+        work: "Academia Anthigonus",
+        source: { collectionName: "Academia Anthigonus" },
+        boss: { name: "Guardião", strategy: "guardian", hp: 45, minMana: 3, maxMana: 6 }
+    },
+    {
+        id: "as-chamas-sob-a-coroa",
+        name: "As Chamas Sob a Coroa",
+        work: "As Chamas Sob a Coroa",
+        source: { collectionName: "As Chamas Sob a Coroa" },
+        boss: { name: "Berserker", strategy: "berserker", hp: 45, minMana: 3, maxMana: 6 }
+    },
+    {
+        id: "entre-a-luz-e-as-sombras",
+        name: "Entre a Luz e as Sombras",
+        work: "Entre a Luz e as Sombras",
+        source: { collectionName: "Entre a Luz e as Sombras" },
+        boss: { name: "Caçador", strategy: "hunter", hp: 45, minMana: 3, maxMana: 6 }
+    },
+    {
+        id: "um-casamento-politico",
+        name: "Um Casamento Político",
+        work: "Um Casamento Político",
+        source: { collectionName: "Um Casamento Político" },
+        boss: { name: "Colosso", strategy: "colossus", hp: 50, minMana: 4, maxMana: 6 }
+    }
+
+    /*
+     * Exemplo para o futuro:
+     *
+     * {
+     *     id: "one-piece",
+     *     name: "One Piece",
+     *     work: "One Piece",
+     *     source: { collectionName: "One Piece" },
+     *     boss: {
+     *         name: "Chefe da campanha",
+     *         strategy: "offensive",
+     *         hp: 45,
+     *         minMana: 3,
+     *         maxMana: 6
+     *     }
+     * }
+     *
+     * Para limitar uma campanha a uma categoria:
+     *
+     * source: {
+     *     collectionName: "One Piece",
+     *     categoryName: "Piratas"
+     * }
+     */
+
 ];
 
 function buildStages(campaign, campaignIndex) {
@@ -29,6 +89,7 @@ function buildStages(campaign, campaignIndex) {
             campaignId: campaign.id,
             campaignName: campaign.name,
             work: campaign.work,
+            source: { ...campaign.source },
             name: "Oponente " + i,
             type: "common",
             boss: false,
@@ -50,6 +111,7 @@ function buildStages(campaign, campaignIndex) {
         campaignId: campaign.id,
         campaignName: campaign.name,
         work: campaign.work,
+        source: { ...campaign.source },
         name: campaign.boss.name,
         type: "boss",
         boss: true,
@@ -114,18 +176,72 @@ function randomize(items) {
     return [...items].sort(() => Math.random() - 0.5);
 }
 
+function normalizeText(value) {
+    return String(value ?? "").trim().toLocaleLowerCase("pt-BR");
+}
+
+function cardBelongsToSource(card, source = {}) {
+    const expectedCollectionId = source.collectionId;
+    const expectedCollectionName = normalizeText(source.collectionName);
+
+    let collectionMatches = true;
+
+    if (expectedCollectionId != null && expectedCollectionId !== "") {
+        collectionMatches =
+            String(card.collectionId ?? "") === String(expectedCollectionId);
+    }
+
+    if (
+        collectionMatches &&
+        expectedCollectionName
+    ) {
+        collectionMatches =
+            normalizeText(card.collectionName || card.work) ===
+            expectedCollectionName;
+    }
+
+    if (!collectionMatches) return false;
+
+    const expectedCategoryId = source.categoryId;
+    const expectedCategoryName = normalizeText(source.categoryName);
+
+    if (expectedCategoryId != null && expectedCategoryId !== "") {
+        if (String(card.categoryId ?? "") === String(expectedCategoryId)) {
+            return true;
+        }
+    }
+
+    if (expectedCategoryName) {
+        const path = Array.isArray(card.path)
+            ? card.path.map(normalizeText)
+            : [];
+
+        return (
+            normalizeText(card.categoryName) === expectedCategoryName ||
+            path.includes(expectedCategoryName)
+        );
+    }
+
+    return true;
+}
+
 function cardBelongsToWork(card, work) {
-    return String(card?.work || "").trim().toLowerCase() === String(work || "").trim().toLowerCase();
+    return normalizeText(card.work) === normalizeText(work);
+}
+
+export function getCardsForSource(cards, source = {}) {
+    return cards.filter(card => cardBelongsToSource(card, source));
 }
 
 function eligibleRewardCards(cards, stage) {
     return cards.filter(card => {
-        if (!cardBelongsToWork(card, stage.work)) return false;
         const mana = Number(card.mana);
         if (!Number.isFinite(mana)) return false;
 
         if (stage.boss) return mana >= 4 && mana <= 6;
-        return mana >= stage.rewardManaMin && mana <= Math.min(stage.rewardManaMax, 5);
+
+        return mana >= stage.rewardManaMin &&
+            mana <= Math.min(stage.rewardManaMax, 5);
     });
 }
 
@@ -144,21 +260,30 @@ export async function generateRewardOptions(stageId) {
             .filter(Boolean);
     }
 
-    const cards = await getAll(STORES.COLLECTION);
-    let candidates = eligibleRewardCards(cards, stage);
+    const allCards = await getAll(STORES.COLLECTION);
+    const sourceCards = getCardsForSource(allCards, stage.source);
 
-    // Fallback temporário para testar a estrutura antes das obras oficiais.
+    if (!sourceCards.length) {
+        throw new Error(
+            'A campanha "' + stage.campaignName +
+            '" ainda não possui cartas importadas para a fonte "' +
+            (stage.source.collectionName || stage.work) + '".'
+        );
+    }
+
+    let candidates = eligibleRewardCards(sourceCards, stage);
+
+    // Quando a coleção ainda está incompleta, usa cartas da própria
+    // coleção/categoria, nunca cartas de outra obra.
     if (!candidates.length) {
-        candidates = cards.filter(card => {
-            const mana = Number(card.mana);
-            return Number.isFinite(mana) &&
-                mana >= stage.rewardManaMin &&
-                mana <= Math.min(stage.rewardManaMax, stage.boss ? 6 : 5);
-        });
+        candidates = sourceCards;
     }
 
     const options = randomize(candidates).slice(0, 3);
-    progress.pendingRewards[stage.id] = options.map(card => String(card.originalId));
+
+    progress.pendingRewards[stage.id] =
+        options.map(card => String(card.originalId));
+
     await saveProgress(progress);
     return options;
 }
@@ -167,24 +292,37 @@ export async function getEnemyDeckCards(stageId) {
     const stage = getStage(stageId);
     if (!stage) throw new Error("Oponente de campanha inválido.");
 
-    const cards = await getAll(STORES.COLLECTION);
+    const allCards = await getAll(STORES.COLLECTION);
+    const sourceCards = getCardsForSource(allCards, stage.source);
 
-    let pool = cards.filter(card => {
-        if (!cardBelongsToWork(card, stage.work)) return false;
+    if (!sourceCards.length) {
+        throw new Error(
+            'Não há cartas importadas para "' +
+            (stage.source.collectionName || stage.work) +
+            '" nesta campanha.'
+        );
+    }
+
+    let pool = sourceCards.filter(card => {
         const mana = Number(card.mana);
-        return Number.isFinite(mana) && mana >= stage.minMana && mana <= stage.maxMana;
+        return Number.isFinite(mana) &&
+            mana >= stage.minMana &&
+            mana <= stage.maxMana;
     });
 
-    // Fallback temporário enquanto as cartas das obras ainda não foram importadas.
+    // Conteúdo incompleto: se a coleção possui cartas, mas ainda não
+    // possui cartas suficientes para esta faixa de Mana, continuamos
+    // usando somente cartas da mesma fonte.
     if (!pool.length) {
-        pool = cards.filter(card => {
-            const mana = Number(card.mana);
-            return Number.isFinite(mana) && mana >= stage.minMana && mana <= stage.maxMana;
-        });
+        pool = sourceCards.filter(card => Number.isFinite(Number(card.mana)));
     }
 
     if (!pool.length) {
-        throw new Error("Não há cartas disponíveis para \"" + stage.name + "\" na faixa de Mana configurada.");
+        throw new Error(
+            'As cartas de "' +
+            (stage.source.collectionName || stage.work) +
+            '" não possuem Mana válida para montar este deck.'
+        );
     }
 
     const deck = [];
@@ -226,7 +364,14 @@ export async function claimReward(stageId, originalId) {
 
     const cards = await getAll(STORES.COLLECTION);
     const card = cards.find(item => String(item.originalId) === normalizedOriginalId);
-    if (!card) throw new Error("A carta escolhida não foi encontrada na Coleção.");
+
+    if (!card) {
+        throw new Error("A carta escolhida não foi encontrada na Coleção.");
+    }
+
+    if (!cardBelongsToSource(card, stage.source)) {
+        throw new Error("Essa carta não pertence à fonte desta campanha.");
+    }
 
     await addCardToInventory(normalizedOriginalId, 1);
 
