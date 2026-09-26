@@ -6,7 +6,8 @@ import {
     getStoryDeckCards,
     saveStoryDeck,
     isPlayerDeckEligible,
-    STORY_DECK_SIZE
+    STORY_DECK_SIZE,
+    getCardsForSource
 } from "../campaign/campaign.js";
 
 import { getCardImage, escapeHtml } from "../core/utils.js";
@@ -106,10 +107,12 @@ function closeStoryDeckSetup() {
     storyDeckOverlay.setAttribute("aria-hidden", "true");
 }
 
-function renderCampaign(campaign, progress) {
+function renderCampaign(campaign, progress, sourceCards) {
     const defeatedCount = campaign.stages.filter(stage =>
         Number(progress.defeated[stage.id] || 0) > 0
     ).length;
+
+    const sourceAvailable = sourceCards.length > 0;
 
     return [
         '<section class="campaign-block">',
@@ -140,11 +143,15 @@ function renderCampaign(campaign, progress) {
                 '</small>',
                 victories > 0 ? '<strong>Vitórias: ' + victories + '</strong>' : '',
                 '</div>',
-                storyDeckReady
+                storyDeckReady && sourceAvailable
                     ? '<a class="button-primary stage-button" href="duelo.html?mode=campaign&stage=' + stage.id + '">' +
                         (victories > 0 ? 'Desafiar novamente' : 'Desafiar') +
                       '</a>'
-                    : '<button class="button-primary stage-button" type="button" disabled title="Defina primeiro o Baralho da História.">Defina seu baralho</button>',
+                    : '<button class="button-primary stage-button" type="button" disabled title="' +
+                        (sourceAvailable ? 'Defina primeiro o Baralho da História.' : 'Importe cartas desta obra para liberar a campanha.') +
+                      '">' +
+                        (sourceAvailable ? 'Defina seu baralho' : 'Sem cartas importadas') +
+                      '</button>',
                 '</article>'
             ].join('');
         }).join(''),
@@ -153,9 +160,15 @@ function renderCampaign(campaign, progress) {
     ].join('');
 }
 
-function renderMap(progress) {
+function renderMap(progress, allCards) {
     map.innerHTML = campaignData.campaigns
-        .map(campaign => renderCampaign(campaign, progress))
+        .map(campaign =>
+            renderCampaign(
+                campaign,
+                progress,
+                getCardsForSource(allCards, campaign.source)
+            )
+        )
         .join("");
 }
 
@@ -226,7 +239,11 @@ async function load() {
         storyDeckReady = Boolean(storyDeck);
 
         const progress = await getCampaignProgress();
-        renderMap(progress);
+        const allCards = await import("../core/database.js").then(({ getAll, STORES }) =>
+            getAll(STORES.COLLECTION)
+        );
+
+        renderMap(progress, allCards);
 
         if (!storyDeckReady) {
             await openStoryDeckSetup();
@@ -298,7 +315,10 @@ confirmStoryDeck.addEventListener("click", async () => {
         closeStoryDeckSetup();
 
         const progress = await getCampaignProgress();
-        renderMap(progress);
+        const allCards = await import("../core/database.js").then(({ getAll, STORES }) =>
+            getAll(STORES.COLLECTION)
+        );
+        renderMap(progress, allCards);
     } catch (error) {
         storyDeckStatus.textContent =
             error.message || "Não foi possível salvar o baralho.";
