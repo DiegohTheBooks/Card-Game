@@ -40,9 +40,14 @@
                         <p class="section-label">Batalha</p>
                         <h2>Meu Baralho</h2>
                     </div>
-                    <button id="clearDeckButton" class="button-secondary" type="button">
-                        Limpar
-                    </button>
+                    <div class="deck-actions">
+                        <button id="selectDeckButton" class="button-primary" type="button">
+                            Selecionar Deck
+                        </button>
+                        <button id="clearDeckButton" class="button-secondary" type="button">
+                            Limpar
+                        </button>
+                    </div>
                 </div>
 
                 <div id="deckGrid" class="deck-grid"></div>
@@ -64,6 +69,33 @@
             </section>
         </section>
     </main>
+
+    <div id="deckSelectionOverlay" class="deck-selection-overlay" aria-hidden="true">
+        <div class="deck-selection-modal" role="dialog" aria-modal="true" aria-labelledby="deckSelectionTitle">
+            <span class="section-label">FASE DE TESTES</span>
+            <h2 id="deckSelectionTitle">Selecionar Deck</h2>
+            <p>
+                Escolha exatamente 25 cartas do seu catálogo para o deck atual.
+                Boss, Evento e Loja não entram nesta seleção.
+                Você pode repetir esta operação sempre que quiser testar outra combinação.
+            </p>
+
+            <div class="deck-selection-summary">
+                <strong><span id="deckSelectionCount">0</span> / 25</strong>
+                <span id="deckSelectionAvailable">0 cartas disponíveis</span>
+            </div>
+
+            <div id="deckSelectionGrid" class="deck-selection-grid"></div>
+            <p id="deckSelectionStatus" class="deck-status"></p>
+
+            <div class="deck-selection-actions">
+                <button id="cancelDeckSelection" class="button-secondary" type="button">Cancelar</button>
+                <button id="confirmDeckSelection" class="button-primary" type="button" disabled>
+                    Usar este Deck
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="js/pages/baralho.js"></script>
     <script type="module" src="js/cards/card-sheet.js"></script>
