@@ -41,7 +41,12 @@ function renderCampaign(campaign, progress) {
                 '<span class="stage-label">' + (stage.boss ? 'BOSS' : 'BATALHA COMUM') + '</span>',
                 '<h3>' + escapeHtml(stage.name) + '</h3>',
                 '<p>' + stage.hp + ' PV · ' + stage.minMana + '–' + stage.maxMana + ' Mana no deck</p>',
-                '<small>Estratégia: ' + escapeHtml(stage.strategy) + ' · Recompensa: cartas da obra' + (stage.boss ? ' · Mana 6 permitida' : '') + '</small>',
+                '<small>Estratégia: ' + escapeHtml(stage.strategy) +
+                    ' · Fonte: ' + escapeHtml(stage.source?.collectionName || stage.work || 'Coleção') +
+                    (stage.source?.categoryName ? ' · Categoria: ' + escapeHtml(stage.source.categoryName) : '') +
+                    ' · Recompensa: cartas da fonte' +
+                    (stage.boss ? ' · Mana 6 permitida' : '') +
+                '</small>',
                 victories > 0 ? '<strong>Vitórias: ' + victories + '</strong>' : '',
                 '</div>',
                 '<a class="button-primary stage-button" href="duelo.html?mode=campaign&stage=' + stage.id + '">' +
@@ -114,8 +119,8 @@ async function openPendingReward(stageId) {
     rewardCampaignName.textContent = stage.campaignName;
     rewardStageName.textContent = stage.boss ? "Boss — " + stage.name : stage.name;
     rewardStatus.textContent = stage.boss
-        ? "Escolha 1 carta da obra. Bosses podem oferecer Mana 6."
-        : "Escolha 1 carta da obra. As outras duas serão descartadas.";
+        ? "Escolha 1 carta da fonte. Bosses podem oferecer Mana 6."
+        : "Escolha 1 carta da fonte. As outras duas serão descartadas.";
 
     renderRewardCards(options, stage.id);
     rewardOverlay.classList.add("open");
