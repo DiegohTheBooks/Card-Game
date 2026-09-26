@@ -6,6 +6,12 @@ function firstValue(...values) {
     );
 }
 
+function normalizeId(value) {
+    return value === undefined || value === null || value === ""
+        ? null
+        : String(value);
+}
+
 export function normalizeCard(raw = {}) {
     const originalId = firstValue(
         raw.originalId,
@@ -17,21 +23,49 @@ export function normalizeCard(raw = {}) {
         throw new Error("Uma carta não possui originalId/id.");
     }
 
+    const path = Array.isArray(raw.path)
+        ? raw.path.map(item => String(item)).filter(Boolean)
+        : [];
+
+    const collectionId = normalizeId(firstValue(
+        raw.collectionId,
+        raw.collectionID,
+        null
+    ));
+
+    const categoryId = normalizeId(firstValue(
+        raw.categoryId,
+        raw.categoryID,
+        null
+    ));
+
+    const collectionName = String(firstValue(
+        raw.collectionName,
+        collectionId ? "" : raw.work,
+        ""
+    ));
+
+    const categoryName = String(firstValue(
+        raw.categoryName,
+        categoryId ? "" : (path.length > 1 ? path[path.length - 1] : ""),
+        ""
+    ));
+
     return {
         ...raw,
         originalId: String(originalId),
         name: String(firstValue(raw.name, raw.title, "Carta sem nome")),
         work: String(firstValue(
             raw.work,
-            raw.collectionName,
+            collectionName,
             raw.collection,
             ""
         )),
-        collectionId: firstValue(
-            raw.collectionId,
-            raw.collectionID,
-            null
-        ),
+        collectionId,
+        collectionName,
+        categoryId,
+        categoryName,
+        path,
         image: String(firstValue(
             raw.image,
             raw.imageData,
@@ -45,6 +79,7 @@ export function normalizeCard(raw = {}) {
         ability: String(firstValue(
             raw.ability,
             raw.abilityDescription,
+            raw.skillDescription,
             ""
         ))
     };
@@ -68,10 +103,20 @@ export function normalizeCollection(raw = {}) {
         throw new Error("Uma coleção não possui id.");
     }
 
+    const parentId =
+        raw.parentId === undefined || raw.parentId === null || raw.parentId === ""
+            ? null
+            : String(raw.parentId);
+
     return {
         ...raw,
         id: String(id),
         name: String(raw.name ?? "Coleção sem nome"),
+        parentId,
+        nodeType: String(
+            raw.nodeType ??
+            (parentId === null ? "collection" : "category")
+        ),
         createdAt: raw.createdAt ?? null
     };
 }
@@ -85,4 +130,18 @@ export function normalizeCollections(collections = []) {
     }
 
     return [...map.values()];
+}
+
+export function getCardPath(card = {}) {
+    if (Array.isArray(card.path) && card.path.length) {
+        return card.path.map(item => String(item));
+    }
+
+    const path = [];
+    if (card.collectionName) path.push(String(card.collectionName));
+    if (card.categoryName && String(card.categoryName) !== String(card.collectionName)) {
+        path.push(String(card.categoryName));
+    }
+
+    return path;
 }
