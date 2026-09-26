@@ -1,6 +1,7 @@
 import {
     replaceCollection,
     put,
+    get,
     STORES
 } from "../core/database.js";
 
@@ -73,6 +74,26 @@ export function detectImportType(payload) {
     return "unknown";
 }
 
+async function ensureSingleCardCollection(card) {
+    if (!card.collectionId || !card.collectionName) {
+        return;
+    }
+
+    const existing = await get(STORES.COLLECTIONS, card.collectionId);
+
+    if (existing) {
+        return;
+    }
+
+    await put(STORES.COLLECTIONS, {
+        id: String(card.collectionId),
+        name: String(card.collectionName),
+        parentId: null,
+        nodeType: "collection",
+        createdAt: card.createdAt ?? null
+    });
+}
+
 export async function importCollectionJson(payload) {
     const rawCards = extractCards(payload);
 
@@ -114,12 +135,21 @@ export async function importSingleCardJson(payload) {
 
     const card = normalizeCard(rawCards[0]);
 
+    // Importação individual nunca apaga as demais cartas.
+    await ensureSingleCardCollection(card);
     await put(STORES.COLLECTION, card);
 
     return {
         type: "single",
         cards: [card],
-        collections: []
+        collections: card.collectionId && card.collectionName
+            ? [{
+                id: card.collectionId,
+                name: card.collectionName,
+                parentId: null,
+                nodeType: "collection"
+            }]
+            : []
     };
 }
 
