@@ -172,6 +172,126 @@ export async function getCampaignProgress() {
     return getProgress();
 }
 
+
+const STORY_DECK_KEY = "storyDeck";
+export const STORY_DECK_SIZE = 25;
+
+const EXCLUDED_PLAYER_CATEGORIES = new Set([
+    "boss",
+    "evento",
+    "loja"
+]);
+
+function categoryTokens(card = {}) {
+    const values = [
+        card.categoryName,
+        ...(Array.isArray(card.path) ? card.path : [])
+    ];
+
+    return values
+        .flatMap(value => String(value ?? "").split("/"))
+        .map(normalizeText)
+        .filter(Boolean);
+}
+
+export function isPlayerDeckEligible(card) {
+    const mana = Number(card?.mana);
+    const atk = Number(card?.atk);
+    const def = Number(card?.def);
+
+    if (!card || card.originalId == null) return false;
+    if (!Number.isFinite(mana) || !Number.isFinite(atk) || !Number.isFinite(def)) {
+        return false;
+    }
+
+    return !categoryTokens(card).some(token =>
+        EXCLUDED_PLAYER_CATEGORIES.has(token)
+    );
+}
+
+export async function getStoryDeckCards() {
+    const saved = await get(STORES.PROGRESS, STORY_DECK_KEY);
+    const ids = Array.isArray(saved?.originalIds)
+        ? saved.originalIds.map(String)
+        : [];
+
+    if (ids.length !== STORY_DECK_SIZE) return null;
+
+    const cards = await getAll(STORES.COLLECTION);
+    const selected = ids
+        .map(id => cards.find(card => String(card.originalId) === id))
+        .filter(Boolean);
+
+    if (
+        selected.length !== STORY_DECK_SIZE ||
+        new Set(selected.map(card => String(card.originalId))).size !== STORY_DECK_SIZE ||
+        selected.some(card => !isPlayerDeckEligible(card))
+    ) {
+        return null;
+    }
+
+    return selected;
+}
+
+export async function hasStoryDeck() {
+    return Boolean(await getStoryDeckCards());
+}
+
+export async function saveStoryDeck(originalIds) {
+    const ids = Array.isArray(originalIds)
+        ? originalIds.map(String)
+        : [];
+
+    if (ids.length !== STORY_DECK_SIZE) {
+        throw new Error("O Baralho da História precisa ter exatamente 25 cartas.");
+    }
+
+    if (new Set(ids).size !== STORY_DECK_SIZE) {
+        throw new Error("Cada carta só pode ser escolhida uma vez na seleção inicial.");
+    }
+
+    const cards = await getAll(STORES.COLLECTION);
+    const selected = ids.map(id =>
+        cards.find(card => String(card.originalId) === id)
+    );
+
+    if (selected.some(card => !card || !isPlayerDeckEligible(card))) {
+        throw new Error(
+            "A seleção contém cartas inválidas ou pertencentes a Boss, Evento ou Loja."
+        );
+    }
+
+    if (await hasStoryDeck()) {
+        throw new Error("O Baralho da História já foi definido.");
+    }
+
+    const { addCardToInventory } = await import("../player/inventory.js");
+    const { clearDeck } = await import("../player/deck.js");
+
+    for (const card of selected) {
+        await addCardToInventory(card.originalId, 1);
+    }
+
+    await clearDeck();
+
+    for (let index = 0; index < selected.length; index++) {
+        await put(STORES.DECK, {
+            slot: index + 1,
+            originalId: selected[index].originalId
+        });
+    }
+
+    await put(STORES.PROGRESS, {
+        key: STORY_DECK_KEY,
+        version: 1,
+        originalIds: ids,
+        createdAt: new Date().toISOString()
+    });
+
+    return selected;
+}
+
+
 function randomize(items) {
     return [...items].sort(() => Math.random() - 0.5);
 }
