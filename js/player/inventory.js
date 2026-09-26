@@ -149,74 +149,7 @@ export async function evolveInventoryCard(originalId, fromTier) {
 }
 
 export async function initializeStarterInventory() {
-    const cards = await getAll(STORES.COLLECTION);
-    const inventory = await getInventory();
-
-    if (inventory.length > 0 || cards.length === 0) {
-        return inventory;
-    }
-
-    const starter = [
-        ["Guardião", 2],
-        ["Cavaleiro", 2],
-        ["Mago", 2],
-        ["Colosso", 2],
-        ["Batedor", 5],
-        ["Guerreiro", 4],
-        ["Arqueiro", 4],
-        ["Assassino", 4]
-    ];
-
-    const used = new Set();
-    let starterTotal = 0;
-
-    for (const [name, quantity] of starter) {
-        const card = cards.find(item =>
-            !used.has(item.originalId) &&
-            String(item.name).trim().toLocaleLowerCase("pt-BR") ===
-            name.toLocaleLowerCase("pt-BR")
-        );
-
-        if (!card) continue;
-
-        used.add(card.originalId);
-        starterTotal += quantity;
-
-        await put(STORES.INVENTORY, {
-            originalId: card.originalId,
-            quantity,
-            tiers: {
-                T1: quantity,
-                T2: 0,
-                T3: 0,
-                T4: 0
-            }
-        });
-
-        await discoverCard(card.originalId, "starter");
-    }
-
-    if (starterTotal < 25) {
-        await import("../core/database.js").then(async ({ clearStore }) => {
-            await clearStore(STORES.INVENTORY);
-        });
-
-        for (let index = 0; index < 25; index++) {
-            const card = cards[index % cards.length];
-            const current = await getInventoryEntry(card.originalId);
-            const tiers = normalizeTierQuantities(current || {});
-
-            tiers.T1 += 1;
-
-            await put(STORES.INVENTORY, {
-                originalId: card.originalId,
-                quantity: totalTierQuantity(tiers),
-                tiers
-            });
-
-            await discoverCard(card.originalId, "starter-fallback");
-        }
-    }
-
+    // O deck inicial agora é escolhido pelo jogador no primeiro acesso à História.
+    // Mantemos esta função por compatibilidade com versões anteriores.
     return getInventory();
 }
