@@ -1178,8 +1178,8 @@ async function loadBattle() {
 
         if (!storyDeck) {
             throw new Error(
-                "Você ainda não definiu seu Baralho da História. " +
-                "Volte à página História e escolha 25 cartas."
+                "Seu Baralho da História está vazio ou incompleto. " +
+                "Volte à página Baralho e use Selecionar Deck para escolher 25 cartas."
             );
         }
 
