@@ -1,6 +1,7 @@
 import { getAll, STORES } from "../core/database.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
 import { initializeStarterInventory } from "../player/inventory.js";
+import { isPlayerDeckEligible, saveStoryDeck, STORY_DECK_SIZE } from "../campaign/campaign.js";
 import { addToDeck, removeFromDeck, clearDeck, MAX_DECK_SIZE, initializeStarterDeck } from "../player/deck.js";
 
 const inventoryCount = document.getElementById("inventoryCount");
@@ -9,10 +10,20 @@ const deckStatus = document.getElementById("deckStatus");
 const inventoryGrid = document.getElementById("inventoryGrid");
 const deckGrid = document.getElementById("deckGrid");
 const clearDeckButton = document.getElementById("clearDeckButton");
+const selectDeckButton = document.getElementById("selectDeckButton");
+const deckSelectionOverlay = document.getElementById("deckSelectionOverlay");
+const deckSelectionGrid = document.getElementById("deckSelectionGrid");
+const deckSelectionCount = document.getElementById("deckSelectionCount");
+const deckSelectionAvailable = document.getElementById("deckSelectionAvailable");
+const deckSelectionStatus = document.getElementById("deckSelectionStatus");
+const confirmDeckSelection = document.getElementById("confirmDeckSelection");
+const cancelDeckSelection = document.getElementById("cancelDeckSelection");
 
 let cards = [];
 let inventory = [];
 let deck = [];
+let selectionCards = [];
+let selection = new Set();
 
 function cardById(id) {
     return cards.find(card => String(card.originalId) === String(id));
@@ -22,6 +33,79 @@ function deckUsage(originalId) {
     return deck.filter(item =>
         String(item.originalId) === String(originalId)
     ).length;
+}
+
+
+function updateSelectionSummary() {
+    deckSelectionCount.textContent = selection.size;
+    deckSelectionAvailable.textContent =
+        selectionCards.length + " cartas elegíveis";
+
+    confirmDeckSelection.disabled = selection.size !== STORY_DECK_SIZE;
+
+    if (selection.size === STORY_DECK_SIZE) {
+        deckSelectionStatus.textContent =
+            "25 cartas selecionadas. Clique em “Usar este Deck” para aplicar.";
+        deckSelectionStatus.classList.remove("is-error");
+    } else {
+        deckSelectionStatus.textContent =
+            "Selecione " + (STORY_DECK_SIZE - selection.size) +
+            " carta(s) para completar o deck.";
+        deckSelectionStatus.classList.remove("is-error");
+    }
+}
+
+function renderSelectionCards() {
+    deckSelectionGrid.innerHTML = selectionCards.map(card => {
+        const selected = selection.has(String(card.originalId));
+        const image = getCardImage(card);
+
+        return [
+            '<button class="deck-selection-card ' + (selected ? 'is-selected' : '') +
+                '" type="button" data-card-id="' + escapeHtml(card.originalId) + '">',
+            image
+                ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(card.name || "Carta") + '">'
+                : '<span class="deck-selection-placeholder">?</span>',
+            '<span class="deck-selection-check">✓</span>',
+            '<span class="deck-selection-name">' + escapeHtml(card.name || "Sem nome") + '</span>',
+            '<span class="deck-selection-meta">Mana ' + (Number(card.mana) || 0) +
+                ' · ' + escapeHtml(card.collectionName || card.work || "Coleção") + '</span>',
+            '</button>'
+        ].join('');
+    }).join('');
+
+    updateSelectionSummary();
+}
+
+async function openDeckSelection() {
+    const allCards = await getAll(STORES.COLLECTION);
+
+    selectionCards = allCards
+        .filter(isPlayerDeckEligible)
+        .sort((a, b) =>
+            String(a.name || "").localeCompare(String(b.name || ""), "pt-BR")
+        );
+
+    selection = new Set();
+
+    if (selectionCards.length < STORY_DECK_SIZE) {
+        deckSelectionGrid.innerHTML =
+            '<div class="empty-inventory">' +
+            'São necessárias pelo menos 25 cartas elegíveis para montar o deck. ' +
+            'Atualmente existem ' + selectionCards.length + '.' +
+            '</div>';
+    } else {
+        renderSelectionCards();
+    }
+
+    updateSelectionSummary();
+    deckSelectionOverlay.classList.add("open");
+    deckSelectionOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeDeckSelection() {
+    deckSelectionOverlay.classList.remove("open");
+    deckSelectionOverlay.setAttribute("aria-hidden", "true");
 }
 
 function setStatus(message, error = false) {
@@ -168,6 +252,56 @@ deckGrid.addEventListener("click", async event => {
         setStatus("Carta removida do deck.");
     } catch (error) {
         setStatus(error.message, true);
+    }
+});
+
+selectDeckButton.addEventListener("click", async () => {
+    try {
+        await openDeckSelection();
+    } catch (error) {
+        setStatus(error.message || "Não foi possível abrir a seleção de deck.", true);
+    }
+});
+
+deckSelectionGrid.addEventListener("click", event => {
+    const button = event.target.closest(".deck-selection-card");
+    if (!button) return;
+
+    const id = String(button.dataset.cardId);
+
+    if (selection.has(id)) {
+        selection.delete(id);
+    } else {
+        if (selection.size >= STORY_DECK_SIZE) {
+            deckSelectionStatus.textContent =
+                "O deck já possui 25 cartas. Remova uma antes de escolher outra.";
+            deckSelectionStatus.classList.add("is-error");
+            return;
+        }
+        selection.add(id);
+    }
+
+    renderSelectionCards();
+});
+
+cancelDeckSelection.addEventListener("click", closeDeckSelection);
+
+confirmDeckSelection.addEventListener("click", async () => {
+    if (selection.size !== STORY_DECK_SIZE) return;
+
+    confirmDeckSelection.disabled = true;
+    deckSelectionStatus.textContent = "Aplicando novo deck...";
+
+    try {
+        await saveStoryDeck([...selection]);
+        closeDeckSelection();
+        await reload();
+        setStatus("Novo deck aplicado. Ele será usado nas próximas batalhas.");
+    } catch (error) {
+        confirmDeckSelection.disabled = false;
+        deckSelectionStatus.textContent =
+            error.message || "Não foi possível aplicar o deck.";
+        deckSelectionStatus.classList.add("is-error");
     }
 });
 
