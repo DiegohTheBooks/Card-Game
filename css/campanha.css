@@ -261,3 +261,162 @@
 
     .reward-card img { max-height: 420px; }
 }
+
+
+.story-deck-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: none;
+    place-items: center;
+    padding: 20px;
+    background: rgba(8,8,16,.9);
+}
+
+.story-deck-overlay.open { display: grid; }
+
+.story-deck-modal {
+    width: min(1100px, 100%);
+    max-height: min(900px, calc(100vh - 40px));
+    overflow: auto;
+    padding: 30px;
+    border: 1px solid var(--ap-border);
+    border-radius: 22px;
+    background: linear-gradient(145deg, #24213b, #171725);
+    box-shadow: 0 30px 90px rgba(0,0,0,.55);
+}
+
+.story-deck-modal h2 {
+    margin: 8px 0;
+    font-family: "Playfair Display", serif;
+}
+
+.story-deck-modal > p {
+    max-width: 850px;
+    color: var(--ap-muted);
+    line-height: 1.6;
+}
+
+.story-deck-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin: 22px 0 15px;
+    padding: 13px 16px;
+    border: 1px solid var(--ap-border);
+    border-radius: 12px;
+    background: rgba(17,17,31,.6);
+}
+
+.story-deck-summary strong {
+    color: var(--ap-gold);
+    font-size: 1.15rem;
+}
+
+.story-deck-summary span:last-child {
+    color: var(--ap-muted);
+    font-size: .8rem;
+}
+
+.story-deck-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(100px, 1fr));
+    gap: 10px;
+}
+
+.story-deck-card {
+    position: relative;
+    padding: 5px;
+    border: 1px solid var(--ap-border);
+    border-radius: 11px;
+    background: rgba(17,17,31,.7);
+    color: var(--ap-text);
+    cursor: pointer;
+    text-align: left;
+}
+
+.story-deck-card:hover { border-color: var(--ap-gold); }
+
+.story-deck-card.is-selected {
+    border-color: var(--ap-gold);
+    box-shadow: 0 0 0 2px rgba(200,169,107,.22);
+}
+
+.story-deck-card img,
+.story-deck-card-placeholder {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: cover;
+    border-radius: 7px;
+    background: #101018;
+}
+
+.story-deck-card-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--ap-muted);
+}
+
+.story-deck-card-name {
+    display: block;
+    padding: 7px 4px 3px;
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.story-deck-card-meta {
+    display: block;
+    padding: 0 4px 5px;
+    color: var(--ap-muted);
+    font-size: .62rem;
+}
+
+.story-deck-check {
+    position: absolute;
+    top: 9px;
+    right: 9px;
+    width: 23px;
+    height: 23px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: rgba(0,0,0,.75);
+    color: var(--ap-gold);
+    font-size: .8rem;
+    opacity: 0;
+}
+
+.story-deck-card.is-selected .story-deck-check { opacity: 1; }
+
+.story-deck-status {
+    min-height: 22px;
+    color: var(--ap-muted);
+}
+
+.story-deck-status.is-error { color: #e8b0b0; }
+
+.story-deck-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 10px;
+}
+
+.story-deck-actions button:disabled {
+    opacity: .45;
+    cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+    .story-deck-grid {
+        grid-template-columns: repeat(4, minmax(80px, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+    .story-deck-modal { padding: 20px; }
+    .story-deck-grid {
+        grid-template-columns: repeat(3, minmax(70px, 1fr));
+    }
+}
