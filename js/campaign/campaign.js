@@ -272,7 +272,10 @@ export async function saveStoryDeck(originalIds) {
     const { clearDeck } = await import("../player/deck.js");
 
     for (const card of selected) {
-        await addCardToInventory(card.originalId, 1);
+        const owned = await get(STORES.INVENTORY, card.originalId);
+        if (!owned || Number(owned.quantity || 0) < 1) {
+            await addCardToInventory(card.originalId, 1);
+        }
     }
 
     await clearDeck();
