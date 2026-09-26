@@ -15,12 +15,7 @@ import { completeStage, getStage, getEnemyDeckCards } from "../campaign/campaign
 import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
 import { registerAchievementEvent } from "../player/achievements.js";
-import {
-    initializeStarterInventory
-} from "../player/inventory.js";
-import {
-    initializeStarterDeck
-} from "../player/deck.js";
+import { getStoryDeckCards } from "../campaign/campaign.js";
 
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
@@ -1176,52 +1171,44 @@ async function loadBattle() {
         );
     }
 
-    /*
-     * O primeiro import já cria essas estruturas.
-     * Estas chamadas também tornam o duelo seguro caso o jogador
-     * entre diretamente nesta página.
-     */
-    await initializeStarterInventory();
-    await initializeStarterDeck();
+    let playerCards = [];
 
-    const deckSlots =
-        await getAll(
-            STORES.DECK
-        );
+    if (mode === "campaign") {
+        const storyDeck = await getStoryDeckCards();
 
-    if (deckSlots.length !== 25) {
-        throw new Error(
-            "Seu baralho precisa ter exatamente 25 cartas. " +
-            "O jogo tentou criar o deck inicial automaticamente, " +
-            "mas o Inventário não possui 25 cartas válidas."
-        );
-    }
-
-    const playerCards = [];
-
-    for (
-        const slot of deckSlots.sort(
-            (a, b) =>
-                Number(a.slot) -
-                Number(b.slot)
-        )
-    ) {
-        const card =
-            collection.find(
-                item =>
-                    item.originalId ===
-                    slot.originalId
-            );
-
-        if (!card) {
+        if (!storyDeck) {
             throw new Error(
-                "Uma carta do seu baralho não foi encontrada na Coleção."
+                "Você ainda não definiu seu Baralho da História. " +
+                "Volte à página História e escolha 25 cartas."
             );
         }
 
-        playerCards.push({
-            ...card
-        });
+        playerCards = storyDeck.map(card => ({ ...card }));
+    } else {
+        const deckSlots = await getAll(STORES.DECK);
+
+        if (deckSlots.length !== 25) {
+            throw new Error(
+                "Seu baralho precisa ter exatamente 25 cartas. " +
+                "Configure-o na página Baralho antes de iniciar um duelo casual."
+            );
+        }
+
+        for (const slot of deckSlots.sort(
+            (a, b) => Number(a.slot) - Number(b.slot)
+        )) {
+            const card = collection.find(
+                item => String(item.originalId) === String(slot.originalId)
+            );
+
+            if (!card) {
+                throw new Error(
+                    "Uma carta do seu baralho não foi encontrada na Coleção."
+                );
+            }
+
+            playerCards.push({ ...card });
+        }
     }
 
     let enemyHp = 20;
