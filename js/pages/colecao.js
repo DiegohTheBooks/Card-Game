@@ -3,6 +3,7 @@ import { importJsonPayload } from "../cards/importer.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
 
 const input = document.getElementById("jsonImportInput");
+const singleInput = document.getElementById("singleCardImportInput");
 const status = document.getElementById("collectionStatus");
 const grid = document.getElementById("collectionGrid");
 const emptyState = document.getElementById("collectionEmpty");
@@ -145,6 +146,24 @@ async function loadCollection() {
 
     render();
 }
+
+singleInput.addEventListener("change", async event => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+        status.textContent = "Importando carta individual...";
+        const payload = JSON.parse(await file.text());
+        const result = await importJsonPayload(payload);
+        if (result.type !== "single") throw new Error("Este botão aceita apenas um JSON com uma carta.");
+        await loadCollection();
+        status.textContent = 'Carta "' + result.cards[0].name + '" adicionada/atualizada sem substituir a Coleção.';
+    } catch (error) {
+        console.error("Erro ao importar carta:", error);
+        status.textContent = error.message || "Não foi possível importar a carta.";
+    } finally {
+        singleInput.value = "";
+    }
+});
 
 input.addEventListener("change", async event => {
     const file = event.target.files?.[0];
