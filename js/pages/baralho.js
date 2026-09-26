@@ -1,7 +1,12 @@
 import { getAll, STORES } from "../core/database.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
 import { initializeStarterInventory } from "../player/inventory.js";
-import { isPlayerDeckEligible, saveStoryDeck, STORY_DECK_SIZE } from "../campaign/campaign.js";
+import {
+    isPlayerDeckEligible,
+    saveStoryDeck,
+    clearStoryDeck,
+    STORY_DECK_SIZE
+} from "../campaign/campaign.js";
 import { addToDeck, removeFromDeck, clearDeck, MAX_DECK_SIZE, initializeStarterDeck } from "../player/deck.js";
 
 const inventoryCount = document.getElementById("inventoryCount");
@@ -309,8 +314,9 @@ clearDeckButton.addEventListener("click", async () => {
     if (!deck.length) return;
 
     await clearDeck();
+    await clearStoryDeck();
     await reload();
-    setStatus("Deck limpo.");
+    setStatus("Deck limpo. A História agora precisa de um novo deck.");
 });
 
 reload().catch(error => {
