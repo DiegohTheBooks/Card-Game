@@ -22,7 +22,22 @@ function collectionName(card) {
         item => item.id === String(card.collectionId)
     );
 
-    return collection?.name || card.work || "Sem coleção";
+    return card.collectionName ||
+        collection?.name ||
+        card.work ||
+        "Sem coleção";
+}
+
+function categoryPath(card) {
+    if (Array.isArray(card.path) && card.path.length) {
+        return card.path.join(" / ");
+    }
+
+    if (card.categoryName) {
+        return collectionName(card) + " / " + card.categoryName;
+    }
+
+    return collectionName(card);
 }
 
 function renderCollectionOptions() {
@@ -65,7 +80,8 @@ function getFilteredCards() {
         const text = (
             card.name + " " +
             card.work + " " +
-            collectionName(card)
+            collectionName(card) + " " +
+            categoryPath(card)
         ).toLocaleLowerCase("pt-BR");
 
         return matchesCollection &&
@@ -120,7 +136,7 @@ function render() {
 
                 '<div class="card-tile-info">' +
                     '<strong>' + escapeHtml(card.name) + '</strong>' +
-                    '<small>' + escapeHtml(collectionName(card)) + '</small>' +
+                    '<small>' + escapeHtml(categoryPath(card)) + '</small>' +
 
                     '<div class="card-tile-stats">' +
                         '<span class="card-stat">MANA <strong>' +
