@@ -2,7 +2,11 @@ import {
     campaignData,
     getCampaignProgress,
     generateRewardOptions,
-    claimReward
+    claimReward,
+    getStoryDeckCards,
+    saveStoryDeck,
+    isPlayerDeckEligible,
+    STORY_DECK_SIZE
 } from "../campaign/campaign.js";
 
 import { getCardImage, escapeHtml } from "../core/utils.js";
@@ -14,6 +18,93 @@ const rewardGrid = document.getElementById("rewardGrid");
 const rewardStageName = document.getElementById("rewardStageName");
 const rewardStatus = document.getElementById("rewardStatus");
 const rewardCampaignName = document.getElementById("rewardCampaignName");
+
+const storyDeckOverlay = document.getElementById("storyDeckOverlay");
+const storyDeckGrid = document.getElementById("storyDeckGrid");
+const storyDeckSelectedCount = document.getElementById("storyDeckSelectedCount");
+const storyDeckAvailableCount = document.getElementById("storyDeckAvailableCount");
+const storyDeckStatus = document.getElementById("storyDeckStatus");
+const confirmStoryDeck = document.getElementById("confirmStoryDeck");
+
+let storyDeckSelection = new Set();
+let storyDeckCards = [];
+let storyDeckReady = false;
+
+
+
+function updateStoryDeckSummary() {
+    storyDeckSelectedCount.textContent = storyDeckSelection.size;
+    storyDeckAvailableCount.textContent =
+        storyDeckCards.length + " cartas disponíveis para escolha.";
+
+    confirmStoryDeck.disabled =
+        storyDeckSelection.size !== STORY_DECK_SIZE;
+
+    if (storyDeckSelection.size === STORY_DECK_SIZE) {
+        storyDeckStatus.textContent =
+            "25 cartas selecionadas. Você pode confirmar seu Baralho da História.";
+        storyDeckStatus.classList.remove("is-error");
+    } else if (storyDeckCards.length < STORY_DECK_SIZE) {
+        storyDeckStatus.textContent =
+            "Você precisa importar pelo menos 25 cartas elegíveis para criar o Baralho da História.";
+        storyDeckStatus.classList.add("is-error");
+    } else {
+        storyDeckStatus.textContent =
+            "Selecione " + (STORY_DECK_SIZE - storyDeckSelection.size) +
+            " carta(s) para completar o baralho.";
+        storyDeckStatus.classList.remove("is-error");
+    }
+}
+
+function renderStoryDeckCards() {
+    storyDeckGrid.innerHTML = storyDeckCards.map(card => {
+        const selected = storyDeckSelection.has(String(card.originalId));
+        const image = getCardImage(card);
+
+        return [
+            '<button class="story-deck-card ' + (selected ? 'is-selected' : '') +
+                '" type="button" data-card-id="' + escapeHtml(card.originalId) + '">',
+            image
+                ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(card.name || "Carta") + '">'
+                : '<span class="story-deck-card-placeholder">?</span>',
+            '<span class="story-deck-check">✓</span>',
+            '<span class="story-deck-card-name">' + escapeHtml(card.name || "Sem nome") + '</span>',
+            '<span class="story-deck-card-meta">Mana ' + (Number(card.mana) || 0) +
+                ' · ' + escapeHtml(card.collectionName || card.work || "Coleção") + '</span>',
+            '</button>'
+        ].join('');
+    }).join('');
+
+    updateStoryDeckSummary();
+}
+
+async function openStoryDeckSetup() {
+    const allCards = await import("../core/database.js").then(({ getAll, STORES }) =>
+        getAll(STORES.COLLECTION)
+    );
+
+    storyDeckCards = allCards
+        .filter(isPlayerDeckEligible)
+        .sort((a, b) => String(a.name || "").localeCompare(String(b.name || ""), "pt-BR"));
+
+    storyDeckSelection = new Set();
+
+    if (!storyDeckCards.length) {
+        storyDeckGrid.innerHTML =
+            '<div class="reward-empty"><h3>Nenhuma carta disponível</h3>' +
+            '<p>Importe cartas do Álbum antes de criar o Baralho da História.</p></div>';
+    } else {
+        renderStoryDeckCards();
+    }
+
+    storyDeckOverlay.classList.add("open");
+    storyDeckOverlay.setAttribute("aria-hidden", "false");
+}
+
+function closeStoryDeckSetup() {
+    storyDeckOverlay.classList.remove("open");
+    storyDeckOverlay.setAttribute("aria-hidden", "true");
+}
 
 function renderCampaign(campaign, progress) {
     const defeatedCount = campaign.stages.filter(stage =>
@@ -49,9 +140,11 @@ function renderCampaign(campaign, progress) {
                 '</small>',
                 victories > 0 ? '<strong>Vitórias: ' + victories + '</strong>' : '',
                 '</div>',
-                '<a class="button-primary stage-button" href="duelo.html?mode=campaign&stage=' + stage.id + '">' +
-                    (victories > 0 ? 'Desafiar novamente' : 'Desafiar') +
-                '</a>',
+                storyDeckReady
+                    ? '<a class="button-primary stage-button" href="duelo.html?mode=campaign&stage=' + stage.id + '">' +
+                        (victories > 0 ? 'Desafiar novamente' : 'Desafiar') +
+                      '</a>'
+                    : '<button class="button-primary stage-button" type="button" disabled title="Defina primeiro o Baralho da História.">Defina seu baralho</button>',
                 '</article>'
             ].join('');
         }).join(''),
@@ -129,10 +222,15 @@ async function openPendingReward(stageId) {
 
 async function load() {
     try {
-        await initializeStarterInventory();
+        const storyDeck = await getStoryDeckCards();
+        storyDeckReady = Boolean(storyDeck);
 
         const progress = await getCampaignProgress();
         renderMap(progress);
+
+        if (!storyDeckReady) {
+            await openStoryDeckSetup();
+        }
 
         const requestedReward = new URLSearchParams(window.location.search).get("reward");
 
@@ -163,6 +261,51 @@ async function load() {
         ].join('');
     }
 }
+
+
+storyDeckGrid.addEventListener("click", event => {
+    const button = event.target.closest(".story-deck-card");
+    if (!button) return;
+
+    const id = String(button.dataset.cardId);
+
+    if (storyDeckSelection.has(id)) {
+        storyDeckSelection.delete(id);
+    } else {
+        if (storyDeckSelection.size >= STORY_DECK_SIZE) {
+            storyDeckStatus.textContent =
+                "O baralho já possui 25 cartas. Remova uma antes de escolher outra.";
+            storyDeckStatus.classList.add("is-error");
+            return;
+        }
+
+        storyDeckSelection.add(id);
+    }
+
+    renderStoryDeckCards();
+});
+
+confirmStoryDeck.addEventListener("click", async () => {
+    if (storyDeckSelection.size !== STORY_DECK_SIZE) return;
+
+    confirmStoryDeck.disabled = true;
+    storyDeckStatus.textContent = "Salvando seu Baralho da História...";
+    storyDeckStatus.classList.remove("is-error");
+
+    try {
+        await saveStoryDeck([...storyDeckSelection]);
+        storyDeckReady = true;
+        closeStoryDeckSetup();
+
+        const progress = await getCampaignProgress();
+        renderMap(progress);
+    } catch (error) {
+        storyDeckStatus.textContent =
+            error.message || "Não foi possível salvar o baralho.";
+        storyDeckStatus.classList.add("is-error");
+        confirmStoryDeck.disabled = false;
+    }
+});
 
 document.getElementById("closeReward").addEventListener("click", () => {
     rewardOverlay.classList.remove("open");
