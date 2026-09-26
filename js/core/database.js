@@ -167,6 +167,19 @@ export async function put(storeName, value) {
     });
 }
 
+export async function remove(storeName, key) {
+    const db = await openDatabase();
+
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(storeName, "readwrite");
+        tx.objectStore(storeName).delete(key);
+
+        tx.oncomplete = () => resolve(true);
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error || new Error("Transação cancelada."));
+    });
+}
+
 export async function clearStore(storeName) {
     const db = await openDatabase();
 
