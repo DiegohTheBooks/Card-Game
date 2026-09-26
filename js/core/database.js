@@ -1,6 +1,6 @@
 const DB_NAME = "CardDuelsV6";
 // V7 mantém o banco existente e apenas adiciona novas estruturas.
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 
 export const STORES = {
     COLLECTION: "cardCollection",
@@ -12,7 +12,8 @@ export const STORES = {
     PLAYER_PROFILE: "playerProfile",
     CODEX: "codex",
     PLAYER_WALLET: "playerWallet",
-    ACHIEVEMENTS: "playerAchievements"
+    ACHIEVEMENTS: "playerAchievements",
+    SHOP: "shopItems"
 };
 
 let dbPromise = null;
@@ -78,6 +79,10 @@ export function openDatabase() {
 
             if (!db.objectStoreNames.contains(STORES.ACHIEVEMENTS)) {
                 db.createObjectStore(STORES.ACHIEVEMENTS, { keyPath: "key" });
+            }
+
+            if (!db.objectStoreNames.contains(STORES.SHOP)) {
+                db.createObjectStore(STORES.SHOP, { keyPath: "originalId" });
             }
         };
 
