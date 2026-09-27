@@ -380,36 +380,6 @@ const AudioEngine = (() => {
         return Boolean(ctx);
     }
 
-    async function test() {
-        const ctx = await ready();
-        if (!ctx) {
-            return { ok: false, state: "unavailable" };
-        }
-
-        if (muted) {
-            return { ok: false, state: "muted" };
-        }
-
-        try {
-            tone(ctx, 880, 0.22, {
-                type: "sine",
-                startFrequency: 880,
-                endFrequency: 660,
-                gain: 0.12,
-                attack: 0.01,
-                release: 0.08
-            });
-
-            return { ok: true, state: ctx.state };
-        } catch (_) {
-            return { ok: false, state: ctx.state };
-        }
-    }
-
-    function getState() {
-        return context?.state || "not-created";
-    }
-
     async function playSound(type) {
         const ctx = await ready();
         if (!ctx || muted) return;
