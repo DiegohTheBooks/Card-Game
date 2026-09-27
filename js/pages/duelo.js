@@ -20,7 +20,17 @@ import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
 import { registerAchievementEvent } from "../player/achievements.js";
 import { getStoryDeckCards } from "../campaign/campaign.js";
-import { playSound } from "../audio/audio.js";
+import { playSound, unlockAudio } from "../audio/audio.js";
+
+let audioUnlocked = false;
+
+async function ensureAudioUnlocked() {
+    if (audioUnlocked) return;
+    audioUnlocked = await unlockAudio();
+}
+
+window.addEventListener("pointerdown", ensureAudioUnlocked, { once: true });
+window.addEventListener("keydown", ensureAudioUnlocked, { once: true });
 
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
@@ -850,6 +860,8 @@ async function handleArenaClick(event) {
 async function summonSelected(
     laneIndex
 ) {
+    await ensureAudioUnlocked();
+
     if (
         busy ||
         !state.selectedHandUid
@@ -959,6 +971,8 @@ async function handlePlayCard() {
 }
 
 async function handleSacrifice() {
+    await ensureAudioUnlocked();
+
     if (
         busy ||
         state.turn !== "player" ||
@@ -984,6 +998,8 @@ async function handleSacrifice() {
 
 async function handleEndTurn() {
     if (busy || !state || state.turn !== "player") return;
+
+    await ensureAudioUnlocked();
 
     busy = true;
     state.sacrificeMode = false;
