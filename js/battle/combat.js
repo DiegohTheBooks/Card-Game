@@ -245,6 +245,8 @@ export function applyRoundEffects(state) {
     syncAllBoardStats(state);
 }
 
+export { getDynamicAtk, getDynamicDefBonus, syncAllBoardStats };
+
 export function calculateAttack(attackerAtk, defenderDef) {
     const atk = Math.max(0, Number(attackerAtk) || 0);
     const def = Math.max(0, Number(defenderDef) || 0);
