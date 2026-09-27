@@ -9,7 +9,7 @@ import {
     isBattleOver,
     getWinner
 } from "../battle/battle.js";
-import { resolveAttack, getAttackBlockReason } from "../battle/combat.js";
+import { resolveAttack, getAttackBlockReason, getDynamicAtk, syncAllBoardStats } from "../battle/combat.js";
 import { runAiTurn } from "../battle/ai.js";
 import { completeStage, getStage, getEnemyDeckCards } from "../campaign/campaign.js";
 import { getPlayerProfile } from "../player/profile.js";
@@ -57,21 +57,38 @@ let busy = false;
 let selectedEnemyUid = null;
 const pendingClickTimers = new Map();
 
+function renderCardStats(card, side, location) {
+    let atk = Number(card?.atk) || 0;
+    let def = Number(card?.currentDef ?? card?.def) || 0;
+
+    if (state && (side === "player" || side === "enemy")) {
+        const lane = Number(location);
+        const board = side === "player" ? state.playerBoard : state.enemyBoard;
+        if (Number.isInteger(lane) && board[lane]?.uid === card.uid) {
+            atk = getDynamicAtk(state, side, lane, card);
+            def = Number(card.currentDef) || 0;
+        }
+    }
+
+    return '<div class="card-stats">' +
+        '<div class="card-stat mana"><span>◆</span><strong>' + (Number(card?.mana) || 0) + '</strong></div>' +
+        '<div class="card-stat atk"><span>⚔</span><strong>' + atk + '</strong></div>' +
+        '<div class="card-stat def"><span>♥</span><strong>' + def + '</strong></div>' +
+        '</div>';
+}
+
 function cardHtml(card, side, location, selected = false) {
     const image = getCardImage(card);
 
-    return `
-        <div class="battle-card ${selected ? "is-selected" : ""}"
-             data-side="${side}"
-             data-location="${location}"
-             data-uid="${escapeHtml(card.uid || "")}"
-             title="Duplo clique: ação">
-            ${image
-                ? '<img src="' + escapeHtml(image) + '" alt="' +
-                  escapeHtml(card.name || "Carta") + '">'
-                : '<div class="battle-card-placeholder">?</div>'}
-        </div>
-    `;
+    return '<div class="battle-card ' + (selected ? "is-selected" : "") +
+        '" data-side="' + side + '" data-location="' + location +
+        '" data-uid="' + escapeHtml(card.uid || "") + '">' +
+        '<div class="battle-card-art">' +
+        (image ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(card.name || "Carta") + '">' :
+            '<div class="battle-card-placeholder">?</div>') +
+        '</div>' +
+        renderCardStats(card, side, location) +
+        '</div>';
 }
 
 function renderHand() {
@@ -238,6 +255,7 @@ function renderSheets() {
 function render() {
     if (!state) return;
 
+    syncAllBoardStats(state);
     renderHud();
     renderHand();
     renderLanes(
@@ -591,9 +609,11 @@ async function handleCardDoubleClick(
     }
 
     if (side === "player") {
-        await performPlayerAttack(
-            location
-        );
+        state.selectedAttackerUid =
+            state.selectedAttackerUid === uid ? null : uid;
+        state.selectedHandUid = null;
+        selectedEnemyUid = null;
+        render();
         return;
     }
 
@@ -912,91 +932,73 @@ async function handleSacrifice() {
 }
 
 async function handleEndTurn() {
-    if (
-        busy ||
-        state.turn !== "player"
-    ) {
-        return;
-    }
+    if (busy || state.turn !== "player") return;
 
     busy = true;
-
     state.sacrificeMode = false;
     state.selectedHandUid = null;
     state.selectedAttackerUid = null;
     selectedEnemyUid = null;
 
-    endPlayerTurn(state);
-
-    state.status =
-        "Turno inimigo...";
-
+    state.status = "Calculando sua rodada...";
     render();
 
-    await new Promise(
-        resolve =>
-            setTimeout(
-                resolve,
-                350
-            )
-    );
+    // Os ataques do jogador são resolvidos automaticamente,
+    // da esquerda para a direita.
+    for (let lane = 0; lane < state.lanes; lane++) {
+        if (isBattleOver(state)) break;
 
-    const actions =
-        runAiTurn(state);
+        const card = state.playerBoard[lane];
+        if (!card || getAttackBlockReason(state, "player", lane)) continue;
 
-    for (const action of actions) {
+        const result = resolveAttack(state, "player", lane);
+        render();
+        await animateAttackResult(result);
         render();
 
-        if (action.type === "play") {
-            const element =
-                findCardElement(
-                    action.card.uid
-                );
-
-            if (element) {
-                element.classList.add(
-                    "anim-summon"
-                );
-
-                await new Promise(
-                    resolve =>
-                        setTimeout(
-                            resolve,
-                            320
-                        )
-                );
-            }
-        }
-
-        if (action.type === "attack") {
-            await animateAttack(
-                action.result.attacker.uid,
-                action.result.defender?.uid || null,
-                action.result.type === "direct"
-            );
-
-            await animateAttackResult(action.result);
-
-            render();
-
-            await new Promise(
-                resolve =>
-                    setTimeout(
-                        resolve,
-                        250
-                    )
-            );
-        }
-
-        if (isBattleOver(state)) {
-            break;
-        }
+        await new Promise(resolve => setTimeout(resolve, 220));
     }
 
     if (isBattleOver(state)) {
         busy = false;
         render();
-        finishBattle();
+        await finishBattle();
+        return;
+    }
+
+    endPlayerTurn(state);
+    state.status = "Turno inimigo...";
+    render();
+
+    await new Promise(resolve => setTimeout(resolve, 350));
+
+    const actions = runAiTurn(state);
+
+    for (const action of actions) {
+        render();
+
+        if (action.type === "play") {
+            const element = findCardElement(action.card.uid);
+
+            if (element) {
+                element.classList.add("anim-summon");
+                await new Promise(resolve => setTimeout(resolve, 320));
+            }
+        }
+
+        if (action.type === "attack") {
+            await animateAttackResult(action.result);
+            render();
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+
+        if (isBattleOver(state)) break;
+    }
+
+    if (isBattleOver(state)) {
+        busy = false;
+        render();
+        await finishBattle();
         return;
     }
 
@@ -1242,26 +1244,6 @@ els.arena.addEventListener(
     }
 );
 
-els.playCard.addEventListener(
-    "click",
-    handlePlayCard
-);
-
-els.attack.addEventListener(
-    "click",
-    handleAttackButton
-);
-
-els.endTurn.addEventListener(
-    "click",
-    handleEndTurn
-);
-
-els.sacrifice.addEventListener(
-    "click",
-    handleSacrifice
-);
-
 loadBattle().catch(error => {
     console.error(error);
 
@@ -1271,8 +1253,6 @@ loadBattle().catch(error => {
     els.message.textContent =
         error.message;
 
-    els.playCard.disabled = true;
-    els.attack.disabled = true;
     els.endTurn.disabled = true;
     els.sacrifice.disabled = true;
 });
