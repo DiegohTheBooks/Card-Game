@@ -42,8 +42,6 @@ const els = {
     status: document.getElementById("battleStatus"),
     message: document.getElementById("arenaMessage"),
     mode: document.getElementById("duelMode"),
-    playCard: document.getElementById("playCardButton"),
-    attack: document.getElementById("attackButton"),
     endTurn: document.getElementById("endTurnButton"),
     sacrifice: document.getElementById("sacrificeButton"),
     resultOverlay: document.getElementById("battleResultOverlay"),
@@ -185,14 +183,6 @@ function renderHud() {
         state.turn === "player" &&
         !busy;
 
-    els.playCard.disabled =
-        !canAct ||
-        !state.selectedHandUid;
-
-    els.attack.disabled =
-        !canAct ||
-        !state.selectedAttackerUid;
-
     els.endTurn.disabled =
         !canAct;
 
@@ -275,13 +265,13 @@ function render() {
 
     if (state.selectedHandUid) {
         els.message.textContent =
-            "Carta selecionada. Escolha uma lane vazia ou clique em Jogar Carta.";
+            "Carta selecionada. Escolha uma lane vazia para posicioná-la.";
     } else if (state.selectedAttackerUid) {
         els.message.textContent =
-            "Carta selecionada. Clique em Atacar ou escolha outra carta.";
+            "Carta selecionada. O ataque será resolvido ao avançar para a próxima rodada.";
     } else {
         els.message.textContent =
-            "Clique para selecionar/consultar uma carta · Duplo clique para ação.";
+            "Clique em uma carta para consultar ou selecionar.";
     }
 }
 
