@@ -433,8 +433,6 @@ const AudioEngine = (() => {
     return {
         playSound,
         unlock,
-        test,
-        getState,
         setMuted,
         toggleMute,
         setVolume,
@@ -444,8 +442,6 @@ const AudioEngine = (() => {
 
 export const playSound = AudioEngine.playSound;
 export const unlockAudio = AudioEngine.unlock;
-export const testAudio = AudioEngine.test;
-export const getAudioState = AudioEngine.getState;
 export const setMuted = AudioEngine.setMuted;
 export const toggleMute = AudioEngine.toggleMute;
 export const setVolume = AudioEngine.setVolume;
