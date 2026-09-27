@@ -10,7 +10,8 @@ import {
     getWinner
 } from "../battle/battle.js";
 import { resolveAttack, getAttackBlockReason, getDynamicAtk, syncAllBoardStats } from "../battle/combat.js";
-import { runAiTurn } from "../battle/ai.js";
+import { runAiTurnStep } from "../battle/ai.js";
+import { buildAttackActionQueue } from "../battle/combat-events.js";
 import { completeStage, getStage, getEnemyDeckCards } from "../campaign/campaign.js";
 import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
@@ -313,21 +314,15 @@ function findBoardCard(uid) {
     return null;
 }
 
-function createDamageNumber(target, amount) {
+function createFloatingNumber(target, amount, positive = false) {
     if (!target || !amount) return;
 
-    const number =
-        document.createElement("div");
-
-    number.className = "damage-number";
-    number.textContent = "-" + amount;
-
+    const number = document.createElement("div");
+    number.className = "damage-number" + (positive ? " heal-number" : "");
+    number.textContent = (positive ? "+" : "-") + amount;
     target.appendChild(number);
 
-    setTimeout(
-        () => number.remove(),
-        800
-    );
+    setTimeout(() => number.remove(), 800);
 }
 
 function findCardElement(uid) {
@@ -338,100 +333,225 @@ function findCardElement(uid) {
     );
 }
 
-function animateAttack(
-    attackerUid,
-    defenderUid,
-    direct = false
-) {
-    const attacker =
-        findCardElement(attackerUid);
+function showCombatCallout(name, text = "") {
+    const callout = document.createElement("div");
+    callout.className = "combat-callout";
 
-    const defender =
-        defenderUid
-            ? findCardElement(defenderUid)
-            : null;
+    const title = document.createElement("strong");
+    title.textContent = name;
+    callout.appendChild(title);
+
+    if (text) {
+        const detail = document.createElement("span");
+        detail.textContent = text;
+        callout.appendChild(detail);
+    }
+
+    document.body.appendChild(callout);
+
+    requestAnimationFrame(() => callout.classList.add("is-visible"));
+
+    return new Promise(resolve => {
+        setTimeout(() => {
+            callout.classList.remove("is-visible");
+            setTimeout(() => callout.remove(), 180);
+            resolve();
+        }, text ? 520 : 420);
+    });
+}
+
+function pulseCard(uid, className = "anim-ability") {
+    const element = uid ? findCardElement(uid) : null;
+    if (!element) return;
+
+    element.classList.add(className);
+    setTimeout(() => element.classList.remove(className), 520);
+}
+
+function animateAttackLaunch(attackerUid, side) {
+    const attacker = findCardElement(attackerUid);
 
     if (attacker) {
-        attacker.classList.add("anim-attack");
+        attacker.classList.add("anim-attack", side === "player"
+            ? "anim-attack-player"
+            : "anim-attack-enemy");
 
-        setTimeout(
-            () => attacker.classList.remove("anim-attack"),
-            430
-        );
+        setTimeout(() => {
+            attacker.classList.remove("anim-attack", "anim-attack-player", "anim-attack-enemy");
+        }, 470);
     }
 
-    if (defender) {
-        defender.classList.add("anim-hit");
-
-        setTimeout(
-            () => defender.classList.remove("anim-hit"),
-            360
-        );
-    } else {
-        const hud =
-            document.querySelector(
-                ".duel-player-hud.enemy"
-            );
-
-        hud?.classList.add("anim-direct");
-
-        setTimeout(
-            () => hud?.classList.remove("anim-direct"),
-            520
-        );
-    }
-
-    return new Promise(resolve =>
-        setTimeout(
-            resolve,
-            direct ? 520 : 390
-        )
-    );
+    return new Promise(resolve => setTimeout(resolve, 430));
 }
 
-async function animateAttackResult(result) {
-    if (!result) return;
+function animateImpact(targetUid, amount = 0) {
+    const target = findCardElement(targetUid);
 
-    const targets = Array.isArray(result.targets) && result.targets.length
-        ? result.targets
-        : [{
-            defender: result.defender,
-            damage: result.damage,
-            destroyed: result.destroyed
-        }];
+    if (!target) {
+        return new Promise(resolve => setTimeout(resolve, 120));
+    }
 
-    const uniqueDefenders = targets
-        .map(target => target.defender?.uid)
-        .filter(Boolean);
+    target.classList.add("anim-hit");
 
-    await animateAttack(
-        result.attacker.uid,
-        uniqueDefenders[0] || null,
-        result.type === "direct"
-    );
+    if (amount > 0) {
+        createFloatingNumber(target, amount);
+    }
 
-    for (const target of targets) {
-        if (!target.defender) continue;
+    setTimeout(() => target.classList.remove("anim-hit"), 380);
 
-        const defenderElement = findCardElement(target.defender.uid);
+    return new Promise(resolve => setTimeout(resolve, 300));
+}
 
-        if (defenderElement && target.damage > 0) {
-            createDamageNumber(
-                defenderElement,
-                target.damage
+function animateDirectHit(side, amount) {
+    const hudClass = side === "player" ? ".duel-player-hud.enemy" : ".duel-player-hud.player";
+    const hud = document.querySelector(hudClass);
+
+    if (hud) {
+        hud.classList.add("anim-direct");
+        createFloatingNumber(hud, amount);
+        setTimeout(() => hud.classList.remove("anim-direct"), 520);
+    }
+
+    return new Promise(resolve => setTimeout(resolve, 520));
+}
+
+async function animateDestroy(uid) {
+    const element = findCardElement(uid);
+    if (!element) return;
+
+    element.classList.add("anim-destroy");
+    await new Promise(resolve => setTimeout(resolve, 430));
+}
+
+async function animateCombatAction(action) {
+    switch (action.type) {
+        case "attack":
+            state.status = action.direct
+                ? "Ataque direto ao PV!"
+                : "A carta está atacando...";
+            render();
+            await animateAttackLaunch(
+                action.attackerUid,
+                action.side || "player"
             );
+            return;
 
-            if (target.destroyed) {
-                defenderElement.classList.add("anim-destroy");
+        case "impact":
+            state.status = "Impacto!";
+            await animateImpact(action.targetUid, action.damage);
+            return;
 
-                await new Promise(resolve =>
-                    setTimeout(resolve, 180)
-                );
-            }
+        case "damage":
+            // O dano já foi calculado pelo motor. O número visual foi
+            // apresentado junto ao impacto para manter o ritmo da batalha.
+            return;
+
+        case "ability":
+            state.status = action.name + (action.text ? " — " + action.text : "");
+            pulseCard(action.targetUid);
+            await showCombatCallout(action.name, action.text);
+            return;
+
+        case "retaliation":
+            pulseCard(action.targetUid, "anim-retaliation");
+            createFloatingNumber(findCardElement(action.targetUid), action.amount);
+            await new Promise(resolve => setTimeout(resolve, 430));
+            return;
+
+        case "heal":
+            pulseCard(action.targetUid, "anim-heal");
+            createFloatingNumber(findCardElement(action.targetUid), action.amount, true);
+            await new Promise(resolve => setTimeout(resolve, 430));
+            return;
+
+        case "direct":
+            state.status = "Dano direto: -" + action.amount + " PV.";
+            await animateDirectHit(action.side || "player", action.amount);
+            return;
+
+        case "destroy":
+            state.status = "Carta destruída.";
+            await animateDestroy(action.targetUid);
+            return;
+
+        default:
+            return;
+    }
+}
+
+async function playCombatActionQueue(result) {
+    const queue = buildAttackActionQueue(result);
+
+    for (const action of queue) {
+        await animateCombatAction(action);
+        if (isBattleOver(state)) break;
+    }
+
+    render();
+}
+
+async function performPlayerAttack(lane) {
+    if (
+        busy ||
+        !state ||
+        state.turn !== "player"
+    ) {
+        return;
+    }
+
+    const card = state.playerBoard[lane];
+
+    if (!card) {
+        state.status = "Não há carta nessa lane.";
+        render();
+        return;
+    }
+
+    const blockReason = getAttackBlockReason(state, "player", lane);
+
+    if (blockReason) {
+        state.selectedAttackerUid = card.uid;
+        state.status = blockReason;
+        render();
+        return;
+    }
+
+    busy = true;
+    state.selectedAttackerUid = card.uid;
+    state.selectedHandUid = null;
+    selectedEnemyUid = null;
+    state.status = "Ataque em andamento...";
+    render();
+
+    try {
+        const result = resolveAttack(state, "player", lane);
+        render();
+        await playCombatActionQueue(result);
+
+        state.selectedAttackerUid = null;
+
+        if (isBattleOver(state)) {
+            busy = false;
+            render();
+            await finishBattle();
+            return;
         }
-    }
-}
 
+        state.status =
+            result.type === "direct"
+                ? "Ataque direto concluído."
+                : result.destroyed
+                    ? "O defensor foi destruído."
+                    : "Ataque concluído.";
+    } catch (error) {
+        state.status =
+            error?.message ||
+            "Não foi possível realizar o ataque.";
+    }
+
+    busy = false;
+    render();
+}
 async function performPlayerAttack(lane) {
     if (
         busy ||
@@ -922,7 +1042,7 @@ async function handleSacrifice() {
 }
 
 async function handleEndTurn() {
-    if (busy || state.turn !== "player") return;
+    if (busy || !state || state.turn !== "player") return;
 
     busy = true;
     state.sacrificeMode = false;
@@ -930,11 +1050,13 @@ async function handleEndTurn() {
     state.selectedAttackerUid = null;
     selectedEnemyUid = null;
 
-    state.status = "Calculando sua rodada...";
+    state.status = "Preparando o combate...";
     render();
 
-    // Os ataques do jogador são resolvidos automaticamente,
-    // da esquerda para a direita.
+    await showCombatCallout("MOMENTO DE COMBATE");
+
+    // Cada ataque é resolvido pelo motor antes de sua sequência visual.
+    // A fila mantém a apresentação ordenada e previsível.
     for (let lane = 0; lane < state.lanes; lane++) {
         if (isBattleOver(state)) break;
 
@@ -943,10 +1065,11 @@ async function handleEndTurn() {
 
         const result = resolveAttack(state, "player", lane);
         render();
-        await animateAttackResult(result);
-        render();
+        await playCombatActionQueue(result);
 
-        await new Promise(resolve => setTimeout(resolve, 220));
+        if (isBattleOver(state)) break;
+
+        await new Promise(resolve => setTimeout(resolve, 180));
     }
 
     if (isBattleOver(state)) {
@@ -957,32 +1080,43 @@ async function handleEndTurn() {
     }
 
     endPlayerTurn(state);
-    state.status = "Turno inimigo...";
+    state.status = "Turno do inimigo...";
     render();
 
-    await new Promise(resolve => setTimeout(resolve, 350));
+    await showCombatCallout("TURNO DO INIMIGO");
 
-    const actions = runAiTurn(state);
+    // A IA agora executa uma ação por vez. Assim, o jogador vê a
+    // entrada de cada carta e cada ataque no mesmo ritmo do próprio lado.
+    while (!isBattleOver(state)) {
+        const action = runAiTurnStep(state);
 
-    for (const action of actions) {
+        if (action.type === "pass") break;
+
         render();
 
         if (action.type === "play") {
-            const element = findCardElement(action.card.uid);
+            state.status = action.card.name + " foi invocado pelo inimigo.";
+            render();
 
+            const element = findCardElement(action.card.uid);
             if (element) {
                 element.classList.add("anim-summon");
-                await new Promise(resolve => setTimeout(resolve, 320));
+                await new Promise(resolve => setTimeout(resolve, 420));
+                element.classList.remove("anim-summon");
             }
+
+            await new Promise(resolve => setTimeout(resolve, 160));
+            continue;
         }
 
         if (action.type === "attack") {
-            await animateAttackResult(action.result);
             render();
-            await new Promise(resolve => setTimeout(resolve, 250));
-        }
+            await playCombatActionQueue(action.result);
 
-        if (isBattleOver(state)) break;
+            if (isBattleOver(state)) break;
+
+            await new Promise(resolve => setTimeout(resolve, 180));
+        }
     }
 
     if (isBattleOver(state)) {
@@ -992,12 +1126,16 @@ async function handleEndTurn() {
         return;
     }
 
+    state.status = "Fim da rodada.";
+    render();
+
+    await new Promise(resolve => setTimeout(resolve, 420));
+
     startNextRound(state);
 
     busy = false;
     render();
 }
-
 async function finishBattle() {
     const winner =
         getWinner(state);
