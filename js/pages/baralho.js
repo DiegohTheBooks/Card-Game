@@ -1,5 +1,6 @@
 import { getAll, STORES } from "../core/database.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
+import { openCardSheet } from "../cards/card-sheet.js";
 import { initializeStarterInventory } from "../player/inventory.js";
 import {
     isPlayerDeckEligible,
@@ -66,16 +67,24 @@ function renderSelectionCards() {
         const image = getCardImage(card);
 
         return [
-            '<button class="deck-selection-card ' + (selected ? 'is-selected' : '') +
-                '" type="button" data-card-id="' + escapeHtml(card.originalId) + '">',
+            '<article class="deck-selection-card ' + (selected ? 'is-selected' : '') +
+                '" data-card-id="' + escapeHtml(card.originalId) + '">',
             image
-                ? '<img src="' + escapeHtml(image) + '" alt="' + escapeHtml(card.name || "Carta") + '">'
+                ? '<img class="deck-selection-art" src="' + escapeHtml(image) + '" alt="' + escapeHtml(card.name || "Carta") + '">'
                 : '<span class="deck-selection-placeholder">?</span>',
             '<span class="deck-selection-check">✓</span>',
-            '<span class="deck-selection-name">' + escapeHtml(card.name || "Sem nome") + '</span>',
+            '<div class="deck-selection-info">',
+            '<strong class="deck-selection-name">' + escapeHtml(card.name || "Sem nome") + '</strong>',
             '<span class="deck-selection-meta">Mana ' + (Number(card.mana) || 0) +
                 ' · ' + escapeHtml(card.collectionName || card.work || "Coleção") + '</span>',
-            '</button>'
+            '<div class="deck-selection-actions-inline">',
+            '<button class="deck-selection-toggle" type="button" data-card-id="' + escapeHtml(card.originalId) + '">' +
+                (selected ? "✓ Selecionada" : "Escolher") +
+            '</button>',
+            '<button class="deck-selection-preview" type="button" data-preview-card-id="' + escapeHtml(card.originalId) + '" title="Visualizar carta antes de escolher">👁 Ver carta</button>',
+            '</div>',
+            '</div>',
+            '</article>'
         ].join('');
     }).join('');
 
@@ -269,10 +278,19 @@ selectDeckButton.addEventListener("click", async () => {
 });
 
 deckSelectionGrid.addEventListener("click", event => {
-    const button = event.target.closest(".deck-selection-card");
-    if (!button) return;
+    const previewButton = event.target.closest(".deck-selection-preview");
+    if (previewButton) {
+        event.stopPropagation();
 
-    const id = String(button.dataset.cardId);
+        const card = cardById(previewButton.dataset.previewCardId);
+        if (card) openCardSheet(card);
+        return;
+    }
+
+    const toggleButton = event.target.closest(".deck-selection-toggle");
+    if (!toggleButton) return;
+
+    const id = String(toggleButton.dataset.cardId);
 
     if (selection.has(id)) {
         selection.delete(id);
