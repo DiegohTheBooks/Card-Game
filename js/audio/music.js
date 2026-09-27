@@ -161,12 +161,21 @@ async function startBackgroundMusic() {
     if (!initialized) {
         initialized = true;
 
-        try {
-            const saved = await getAudioSettings();
-            settings = saved;
-        } catch (_) {
-            // Mantém os valores padrão.
-        }
+        // Registra as tentativas de desbloqueio antes de qualquer await.
+        // Assim, uma primeira interação que aconteça enquanto o IndexedDB
+        // carrega as configurações não é perdida.
+        const retry = () => {
+            const track = desiredTrack();
+            const saved = readState();
+
+            startTrack(
+                track,
+                saved?.track === track ? Number(saved.time) || 0 : 0
+            );
+        };
+
+        window.addEventListener("pointerdown", retry, { passive: true });
+        window.addEventListener("keydown", retry, { passive: true });
 
         window.addEventListener("cardduels:audio-settings", event => {
             settings = {
@@ -179,28 +188,22 @@ async function startBackgroundMusic() {
             }
         });
 
-        window.addEventListener("pointerdown", () => {
-            startTrack(desiredTrack(), readState()?.track === desiredTrack()
-                ? Number(readState()?.time) || 0
-                : 0);
-        }, { once: false, passive: true });
-
-        window.addEventListener("keydown", () => {
-            startTrack(desiredTrack(), readState()?.track === desiredTrack()
-                ? Number(readState()?.time) || 0
-                : 0);
-        }, { once: false, passive: true });
-
         window.addEventListener("pagehide", saveState);
         window.addEventListener("beforeunload", saveState);
+
+        try {
+            const saved = await getAudioSettings();
+            settings = saved;
+        } catch (_) {
+            // Mantém os valores padrão.
+        }
     }
 
     const track = desiredTrack();
     const saved = readState();
 
     // A música tenta começar imediatamente. Se o navegador bloquear autoplay,
-    // o listener de pointerdown/keydown acima fará a primeira tentativa após
-    // uma interação real do usuário.
+    // os listeners acima farão nova tentativa após uma interação real do usuário.
     await startTrack(
         track,
         saved?.track === track ? Number(saved.time) || 0 : 0
