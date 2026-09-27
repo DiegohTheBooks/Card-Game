@@ -323,7 +323,8 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
                 defender: null,
                 damage: atk,
                 destroyed: false,
-                direct: true
+                direct: true,
+                excessDamage: 0
             };
         }
 
@@ -332,7 +333,8 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
             defender: null,
             damage: 0,
             destroyed: false,
-            direct: false
+            direct: false,
+            excessDamage: 0
         };
     }
 
@@ -491,10 +493,15 @@ export function resolveAttack(state, side, laneIndex) {
     syncAllBoardStats(state);
 
     const destroyed = results.some(result => result.destroyed);
+    const attackerDestroyed = !attackingBoard.some(
+        card => card?.uid === attacker.uid
+    );
 
     return {
         type: primary?.direct ? "direct" : (broad ? "wide" : "lane"),
         attacker,
+        attackerSide: side,
+        attackerDestroyed,
         defender: primary?.defender || null,
         damage: primary?.damage || 0,
         remainingDef: primary?.remainingDef ?? null,
