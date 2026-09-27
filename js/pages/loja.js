@@ -2,6 +2,7 @@ import { getAll, put, STORES } from "../core/database.js";
 import { importSingleCardJson } from "../cards/importer.js";
 import { getCardImage, escapeHtml } from "../core/utils.js";
 
+const SHOP_CARD_PRICE = 3000;
 const input=document.getElementById("shopImportInput"),grid=document.getElementById("shopGrid"),empty=document.getElementById("shopEmpty"),status=document.getElementById("shopStatus");
 let cards=[];
 function render(){
@@ -9,7 +10,7 @@ function render(){
  if(!cards.length){grid.innerHTML="";return;}
  grid.innerHTML=cards.map(c=>{
   const img=getCardImage(c);
-  return '<article class="shop-card"><div class="shop-art">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(c.name)+'" loading="lazy">':'')+'</div><div class="shop-info"><h2>'+escapeHtml(c.name)+'</h2><small>'+escapeHtml(c.work||"Carta especial")+'</small><div class="shop-meta"><span>MANA '+c.mana+'</span><span>'+(c.shopPrice>0?(c.shopCurrency==="gold"?"🟡 ":"🪙 ")+c.shopPrice:"Preço não definido")+'</span></div><div class="shop-status">Carta cadastrada na Loja. A compra/resgate será conectado ao sistema de moedas quando a economia da Loja for ativada.</div><button class="button-secondary" type="button" data-id="'+escapeHtml(c.originalId)+'">Ver ficha</button></div></article>';
+  return '<article class="shop-card"><div class="shop-art">'+(img?'<img src="'+escapeHtml(img)+'" alt="'+escapeHtml(c.name)+'" loading="lazy">':'')+'</div><div class="shop-info"><h2>'+escapeHtml(c.name)+'</h2><small>'+escapeHtml(c.work||"Carta especial")+'</small><div class="shop-meta"><span>MANA '+c.mana+'</span><span>'+(c.shopCurrency==="gold"?"🟡 ":"🪙 ")+SHOP_CARD_PRICE+'</span></div><div class="shop-status">Carta cadastrada na Loja. A compra/resgate será conectado ao sistema de moedas quando a economia da Loja for ativada.</div><button class="button-secondary" type="button" data-id="'+escapeHtml(c.originalId)+'">Ver ficha</button></div></article>';
  }).join("");
 }
 async function load(){
@@ -23,7 +24,7 @@ input.addEventListener("change",async e=>{
   const payload=JSON.parse(await file.text());
   const result=await importSingleCardJson(payload);
   const card=result.cards[0];
-  await put(STORES.SHOP,{originalId:String(card.originalId),importedAt:new Date().toISOString(),shopPrice:Number(card.shopPrice)||0,shopCurrency:card.shopCurrency||"gold"});
+  await put(STORES.SHOP,{originalId:String(card.originalId),importedAt:new Date().toISOString(),shopPrice:SHOP_CARD_PRICE,shopCurrency:"gold"});
   await load();
   status.textContent='Carta "'+card.name+'" adicionada à Loja.';
  }catch(error){console.error(error);status.textContent=error.message||"Não foi possível importar a carta.";}finally{input.value="";}
