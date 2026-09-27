@@ -327,7 +327,7 @@ export function openCardSheet(card) {
         Number(card.atk) || 0;
 
     document.getElementById("cardSheetDef").textContent =
-        Number(card.def) || 0;
+        Number(card.currentDef ?? card.def) || 0;
 
     document.getElementById("cardSheetAbility").textContent =
         card.ability || "Nenhuma habilidade cadastrada.";
