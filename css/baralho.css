@@ -411,3 +411,73 @@
         grid-template-columns: repeat(3, minmax(70px, 1fr));
     }
 }
+
+
+.deck-selection-card {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.deck-selection-art {
+    display: block;
+    width: 100%;
+    aspect-ratio: 2 / 3;
+    object-fit: contain;
+    background: #101018;
+    border-radius: 6px;
+}
+
+.deck-selection-info {
+    padding: 7px 5px 6px;
+}
+
+.deck-selection-actions-inline {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 5px;
+    margin-top: 7px;
+}
+
+.deck-selection-toggle,
+.deck-selection-preview {
+    width: 100%;
+    min-height: 30px;
+    border-radius: 7px;
+    padding: 5px 6px;
+    font: inherit;
+    font-size: .62rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.deck-selection-toggle {
+    border: 1px solid var(--ap-gold);
+    background: rgba(200,169,107,.10);
+    color: var(--ap-gold);
+}
+
+.deck-selection-toggle:hover {
+    background: rgba(200,169,107,.20);
+}
+
+.deck-selection-preview {
+    border: 1px solid var(--ap-border);
+    background: rgba(0,0,0,.25);
+    color: var(--ap-muted);
+}
+
+.deck-selection-preview:hover {
+    border-color: var(--ap-gold);
+    color: var(--ap-text);
+}
+
+.deck-selection-card.is-selected .deck-selection-toggle {
+    background: rgba(200,169,107,.18);
+}
+
+@media (min-width: 901px) {
+    .deck-selection-actions-inline {
+        grid-template-columns: 1fr 1fr;
+    }
+}
