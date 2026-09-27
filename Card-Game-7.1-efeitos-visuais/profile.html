@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARD DUELS — Perfil do Autor</title>
+<link rel="stylesheet" href="css/global.css"><link rel="stylesheet" href="css/perfil.css">
+</head>
+<body class="page-profile"><main class="app-shell">
+<header class="page-header compact"><a class="back-link" href="index.html">← Menu</a><p class="eyebrow">UM MUNDO ALÉM DAS PÁGINAS</p><h1>✦ Perfil do Autor</h1><p class="subtitle">A página do personagem e da sua progressão dentro do universo.</p></header>
+<section class="author-hero panel"><div class="author-avatar-wrap"><div class="author-avatar" id="authorAvatar">✦</div><button class="button-secondary" id="editProfileButton" type="button">Editar perfil</button></div><div class="author-intro"><p class="section-label">PERSONAGEM</p><h2 id="profileName">Autor</h2><p id="profilePresentation"></p><div class="level-line"><strong>Nível <span id="profileLevel">0</span></strong><span><b id="profileXp">0</b> / <b id="profileXpNext">100</b> XP</span></div><div class="xp-bar"><span id="profileXpBar"></span></div></div></section>
+<section class="profile-stats-grid"><article class="stat-card"><span>PV MÁXIMO</span><strong id="profileHp">20</strong></article><article class="stat-card"><span>MANA INICIAL</span><strong id="profileMana">2</strong></article><article class="stat-card"><span>CARTAS DESCOBERTAS</span><strong id="profileDiscovered">0</strong></article><article class="stat-card"><span>CONQUISTAS</span><strong id="profileAchievements">0 / 0</strong></article></section>
+<section class="profile-columns"><section class="panel profile-section"><div class="section-heading"><div><p class="section-label">JORNADA</p><h2>Campanhas concluídas</h2></div></div><div id="campaignsList" class="campaign-list"></div></section><section class="panel profile-section"><div class="section-heading"><div><p class="section-label">PROGRESSO</p><h2>Conquistas atuais</h2></div><a class="text-link" href="conquistas.html">Ver todas →</a></div><div id="achievementsList" class="mini-achievements"></div></section></section>
+<dialog class="profile-dialog" id="profileDialog"><form id="profileForm" method="dialog"><p class="section-label">PERSONAGEM</p><h2>Editar perfil</h2><label>Nome<input id="profileNameInput" maxlength="40" autocomplete="off"></label><label>Frase do personagem<textarea id="profilePresentationInput" maxlength="180" rows="3"></textarea></label><label>Personagem usado como avatar<select id="profileAvatarSelect"></select></label><div id="avatarPreview" class="avatar-preview">✦</div><div class="dialog-actions"><button id="cancelProfileButton" type="button">Cancelar</button><button class="button-primary" type="submit">Salvar</button></div></form></dialog>
+</main><script type="module" src="js/pages/perfil.js"></script></body></html>
