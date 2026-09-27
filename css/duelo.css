@@ -950,3 +950,83 @@
 .battle-card .card-stat.mana span,.battle-card .card-stat.mana strong{color:#e3bd55}
 .battle-card .card-stat.atk span,.battle-card .card-stat.atk strong{color:#72a9e8}
 .battle-card .card-stat.def span,.battle-card .card-stat.def strong{color:#e57d7d}
+
+
+/* V7 — resolução de combate por fila de ações. */
+.duel-player-hud{position:relative}
+.battle-card.anim-attack-player{animation:attack-lunge-player .46s cubic-bezier(.2,.8,.2,1)}
+.battle-card.anim-attack-enemy{animation:attack-lunge-enemy .46s cubic-bezier(.2,.8,.2,1)}
+.battle-card.anim-ability{animation:ability-pulse .5s ease}
+.battle-card.anim-retaliation{animation:retaliation-pulse .46s ease}
+.battle-card.anim-heal{animation:heal-pulse .46s ease}
+
+@keyframes attack-lunge-player{
+    0%{transform:translateY(0) scale(1)}
+    42%{transform:translateY(-38px) scale(1.07);filter:brightness(1.28)}
+    72%{transform:translateY(5px) scale(1.02)}
+    100%{transform:translateY(0) scale(1)}
+}
+@keyframes attack-lunge-enemy{
+    0%{transform:translateY(0) scale(1)}
+    42%{transform:translateY(38px) scale(1.07);filter:brightness(1.28)}
+    72%{transform:translateY(-5px) scale(1.02)}
+    100%{transform:translateY(0) scale(1)}
+}
+@keyframes ability-pulse{
+    0%,100%{transform:scale(1);filter:brightness(1)}
+    35%{transform:scale(1.045);filter:brightness(1.35)}
+    70%{transform:scale(.985);filter:brightness(1.12)}
+}
+@keyframes retaliation-pulse{
+    0%,100%{transform:translateX(0);filter:brightness(1)}
+    25%{transform:translateX(-7px);filter:brightness(1.4)}
+    50%{transform:translateX(7px);filter:brightness(1.6)}
+    75%{transform:translateX(-4px);filter:brightness(1.15)}
+}
+@keyframes heal-pulse{
+    0%,100%{transform:scale(1);filter:brightness(1)}
+    45%{transform:scale(1.04);filter:brightness(1.35)}
+}
+
+.heal-number{
+    color:#9bd5a5;
+}
+
+.combat-callout{
+    position:fixed;
+    left:50%;
+    top:45%;
+    z-index:1400;
+    min-width:min(330px,80vw);
+    padding:12px 22px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    text-align:center;
+    border:1px solid rgba(200,169,107,.48);
+    border-radius:12px;
+    background:rgba(8,11,18,.9);
+    box-shadow:0 18px 55px rgba(0,0,0,.45),0 0 28px rgba(200,169,107,.08);
+    backdrop-filter:blur(7px);
+    opacity:0;
+    transform:translate(-50%,-45%) scale(.92);
+    transition:opacity .18s ease,transform .18s ease;
+    pointer-events:none;
+}
+.combat-callout.is-visible{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+}
+.combat-callout strong{
+    color:#f0d99a;
+    font-family:"Playfair Display",Georgia,"Times New Roman",serif;
+    font-size:clamp(18px,2vw,25px);
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+.combat-callout span{
+    color:var(--ap-muted);
+    font-size:11px;
+    line-height:1.4;
+}
