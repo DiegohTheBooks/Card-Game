@@ -1148,9 +1148,14 @@ async function handleEndTurn() {
         if (isBattleOver(state)) break;
     }
 
-    if (!isBattleOver(state)) {
-        await showCombatCallout("NOVA RODADA");
+    if (isBattleOver(state)) {
+        busy = false;
+        render();
+        await finishBattle();
+        return;
     }
+
+    await showCombatCallout("NOVA RODADA");
 
     busy = false;
     render();
