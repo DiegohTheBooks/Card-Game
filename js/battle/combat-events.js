@@ -31,14 +31,6 @@ export function buildAttackActionQueue(result) {
             excessDamage: result.excessDamage
         }];
 
-    queue.push({
-        type: "attack",
-        attackerUid: attacker.uid,
-        targetUid: targets[0]?.defender?.uid || null,
-        direct: result.type === "direct",
-        side: result.attackerSide || null
-    });
-
     if (hasAbility(attacker, "investida")) {
         queue.push({
             type: "ability",
@@ -54,6 +46,14 @@ export function buildAttackActionQueue(result) {
             text: "atinge as lanes adjacentes."
         });
     }
+
+    queue.push({
+        type: "attack",
+        attackerUid: attacker.uid,
+        targetUid: targets[0]?.defender?.uid || null,
+        direct: result.type === "direct",
+        side: result.attackerSide || null
+    });
 
     for (const target of targets) {
         if (target.defender) {
@@ -130,6 +130,11 @@ export function buildAttackActionQueue(result) {
             }
 
             if (target.destroyed) {
+                queue.push({
+                    type: "destroy",
+                    targetUid: target.defender.uid
+                });
+
                 if (hasAbility(target.defender, "atordoar")) {
                     queue.push({
                         type: "ability",
@@ -147,11 +152,6 @@ export function buildAttackActionQueue(result) {
                         targetUid: attacker.uid
                     });
                 }
-
-                queue.push({
-                    type: "destroy",
-                    targetUid: target.defender.uid
-                });
             }
 
             if (
