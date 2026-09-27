@@ -8,6 +8,7 @@ function cloneCard(card, uid) {
         uid,
         currentDef: Number(card.def) || 0,
         baseCurrentDef: Number(card.def) || 0,
+        damageTaken: 0,
         summonedRound: null,
         attackedRound: null,
         stunnedUntilRound: null,
@@ -55,7 +56,8 @@ export async function createBattleState({
     const sourcePlayer = playerCards.map(card => ({
         ...card,
         currentDef: Number(card.def) || 0,
-        baseCurrentDef: Number(card.def) || 0
+        baseCurrentDef: Number(card.def) || 0,
+        damageTaken: 0
     }));
 
     const sourceEnemy = enemyCards.length
@@ -152,6 +154,7 @@ export function playCard(state, side, handIndex, laneIndex) {
 
     card.baseCurrentDef = Number(card.def) || 0;
     card.currentDef = card.baseCurrentDef;
+    card.damageTaken = 0;
     card.summonedRound = state.round;
     card.attackedRound = null;
     card.stunnedUntilRound = null;
