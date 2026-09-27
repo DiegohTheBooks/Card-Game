@@ -37,10 +37,15 @@ function getAdjacentEmptyCount(state, side, laneIndex) {
         ? state.playerBoard
         : state.enemyBoard;
 
+    // Predador Solitário considera os outros espaços do campo.
+    // Em 5 lanes, pode haver até 4 espaços vazios: +8 ATK.
     let count = 0;
 
-    if (laneIndex > 0 && !board[laneIndex - 1]) count += 1;
-    if (laneIndex < state.lanes - 1 && !board[laneIndex + 1]) count += 1;
+    for (let lane = 0; lane < state.lanes; lane++) {
+        if (lane !== laneIndex && !board[lane]) {
+            count += 1;
+        }
+    }
 
     return count;
 }
