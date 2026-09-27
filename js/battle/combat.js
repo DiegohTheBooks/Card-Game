@@ -43,7 +43,7 @@ function getDynamicAtk(state, side, laneIndex, card) {
 
     let atk = Math.max(0, Number(card.atk) || 0);
 
-    if (hasAbility(card, "predador solitário")) {
+    if (hasAbility(card, "predador-solitario")) {
         atk += getAdjacentEmptyCount(state, side, laneIndex) * 2;
     }
 
@@ -393,7 +393,7 @@ export function resolveAttack(state, side, laneIndex) {
         throw new Error("Não há carta atacante nessa lane.");
     }
 
-    const broad = hasAbility(attacker, "golpe amplo");
+    const broad = hasAbility(attacker, "golpe-amplo");
     const targets = broad
         ? [laneIndex - 1, laneIndex, laneIndex + 1]
             .filter(lane => lane >= 0 && lane < state.lanes)
@@ -427,7 +427,7 @@ export function resolveAttack(state, side, laneIndex) {
         results.push(result);
 
         // Retaliação é resolvida imediatamente após o ataque à carta.
-        if (result.defender && hasAbility(result.defender, "retaliação")) {
+        if (result.defender && hasAbility(result.defender, "retaliacao")) {
             result.retaliationApplied = true;
 
             applyDefDamage(
