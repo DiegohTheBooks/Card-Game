@@ -81,9 +81,7 @@ export function buildAttackActionQueue(result) {
                 });
             }
 
-            if (
-                hasAbility(target.defender, "retaliação")
-            ) {
+            if (target.retaliationApplied) {
                 queue.push({
                     type: "ability",
                     name: "Retaliação",
@@ -99,10 +97,7 @@ export function buildAttackActionQueue(result) {
                 });
             }
 
-            if (
-                !target.destroyed &&
-                hasAbility(attacker, "sangramento")
-            ) {
+            if (target.bleedingApplied) {
                 queue.push({
                     type: "ability",
                     name: "Sangramento",
@@ -111,10 +106,7 @@ export function buildAttackActionQueue(result) {
                 });
             }
 
-            if (
-                target.damage > 0 &&
-                hasAbility(attacker, "dreno")
-            ) {
+            if (target.drainApplied) {
                 queue.push({
                     type: "ability",
                     name: "Dreno",
@@ -135,7 +127,7 @@ export function buildAttackActionQueue(result) {
                     targetUid: target.defender.uid
                 });
 
-                if (hasAbility(target.defender, "atordoar")) {
+                if (target.stunApplied) {
                     queue.push({
                         type: "ability",
                         name: "Atordoar",
@@ -144,7 +136,7 @@ export function buildAttackActionQueue(result) {
                     });
                 }
 
-                if (hasAbility(target.defender, "veneno")) {
+                if (target.poisonApplied) {
                     queue.push({
                         type: "ability",
                         name: "Veneno",
