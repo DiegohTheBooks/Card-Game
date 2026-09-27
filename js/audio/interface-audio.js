@@ -1,4 +1,4 @@
-import { playSound, unlockAudio } from "./audio.js";
+import { playSound, unlockAudio } from "./audio.js";\nimport { startBackgroundMusic } from "./music.js";
 
 const CARD_SELECTORS = [
     ".battle-card",
@@ -97,7 +97,7 @@ let installed = false;
 
 export function installInterfaceAudio() {
     if (installed) return;
-    installed = true;
+    installed = true;\n    startBackgroundMusic();
 
     window.addEventListener("pointerdown", async event => {
         const target = getTarget(event);
