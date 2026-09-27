@@ -40,15 +40,20 @@ export function buildAttackActionQueue(result) {
         });
     }
 
-    queue.push({
-        type: "attack",
-        attackerUid: attacker.uid,
-        targetUid: targets[0]?.defender?.uid || null,
-        direct: result.type === "direct",
-        side: result.attackerSide || null
-    });
-
     for (const target of targets) {
+        // Cada alvo de Golpe Amplo recebe sua própria etapa visual.
+        // Assim o jogador vê a carta atacar a frente e depois cada lane adjacente.
+        if (target.defender || target.direct) {
+            queue.push({
+                type: "attack",
+                attackerUid: attacker.uid,
+                targetUid: target.defender?.uid || null,
+                direct: Boolean(target.direct),
+                laneIndex: target.laneIndex,
+                side: result.attackerSide || null
+            });
+        }
+
         if (target.defender) {
             queue.push({
                 type: "impact",
