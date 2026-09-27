@@ -1,6 +1,6 @@
 const DB_NAME = "CardDuelsV6";
 // V7 mantém o banco existente e V8 adiciona índices para coleção/categoria.
-const DB_VERSION = 8;
+const DB_VERSION = 9;
 
 export const STORES = {
     COLLECTION: "cardCollection",
@@ -13,7 +13,8 @@ export const STORES = {
     CODEX: "codex",
     PLAYER_WALLET: "playerWallet",
     ACHIEVEMENTS: "playerAchievements",
-    SHOP: "shopItems"
+    SHOP: "shopItems",
+    SETTINGS: "gameSettings"
 };
 
 let dbPromise = null;
@@ -115,6 +116,10 @@ export function openDatabase() {
 
             if (!db.objectStoreNames.contains(STORES.SHOP)) {
                 db.createObjectStore(STORES.SHOP, { keyPath: "originalId" });
+            }
+
+            if (!db.objectStoreNames.contains(STORES.SETTINGS)) {
+                db.createObjectStore(STORES.SETTINGS, { keyPath: "key" });
             }
         };
 
