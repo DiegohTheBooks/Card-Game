@@ -1,18 +1,8 @@
 import { getAll, get, put, remove, STORES } from "../core/database.js";
 import { addCardToInventory } from "../player/inventory.js";
 
-export const CAMPAIGN_VERSION = 4;
+export const CAMPAIGN_VERSION = 5;
 
-/*
- * Cada campanha aponta para uma fonte do Álbum.
- *
- * collectionId é preferencial quando conhecido.
- * collectionName permite que a campanha continue funcionando
- * mesmo quando o ID da coleção muda entre bases.
- *
- * categoryId/categoryName são opcionais. Quando informados,
- * inimigos e recompensas ficam restritos à categoria indicada.
- */
 const CAMPAIGN_DEFINITIONS = [
     {
         id: "academia-anthigonus",
@@ -48,40 +38,21 @@ const CAMPAIGN_DEFINITIONS = [
         work: "One Piece",
         source: { collectionName: "One Piece" },
         boss: { name: "Imperador dos Mares", strategy: "offensive", hp: 50, minMana: 4, maxMana: 6 }
+    },
+    {
+        id: "gotei-13",
+        name: "Gotei 13",
+        work: "Gotei 13",
+        source: { collectionName: "Gotei 13" },
+        boss: { name: "Comandante do Gotei 13", strategy: "defensive", hp: 50, minMana: 4, maxMana: 6 }
     }
-
-    /*
-     * Exemplo para o futuro:
-     *
-     * {
-     *     id: "one-piece",
-     *     name: "One Piece",
-     *     work: "One Piece",
-     *     source: { collectionName: "One Piece" },
-     *     boss: {
-     *         name: "Chefe da campanha",
-     *         strategy: "offensive",
-     *         hp: 45,
-     *         minMana: 3,
-     *         maxMana: 6
-     *     }
-     * }
-     *
-     * Para limitar uma campanha a uma categoria:
-     *
-     * source: {
-     *     collectionName: "One Piece",
-     *     categoryName: "Piratas"
-     * }
-     */
-
 ];
 
 function buildStages(campaign, campaignIndex) {
     const stages = [];
 
     for (let i = 1; i <= 9; i++) {
-        const id = campaignIndex === 0 ? i : (campaignIndex * 10) + i;
+        const id = (campaignIndex * 10) + i;
         let minMana = 2;
         let maxMana = 2;
 
@@ -110,7 +81,7 @@ function buildStages(campaign, campaignIndex) {
         });
     }
 
-    const bossId = campaignIndex === 0 ? 10 : (campaignIndex * 10) + 10;
+    const bossId = (campaignIndex * 10) + 10;
 
     stages.push({
         id: bossId,
@@ -163,7 +134,6 @@ function progressKey() {
 
 async function getProgress() {
     const saved = await get(STORES.CAMPAIGN, progressKey());
-
     return {
         version: CAMPAIGN_VERSION,
         defeated: saved?.defeated || {},
@@ -179,15 +149,10 @@ export async function getCampaignProgress() {
     return getProgress();
 }
 
-
 const STORY_DECK_KEY = "storyDeck";
 export const STORY_DECK_SIZE = 25;
 
-const EXCLUDED_PLAYER_CATEGORIES = new Set([
-    "boss",
-    "evento",
-    "loja"
-]);
+const EXCLUDED_PLAYER_CATEGORIES = new Set(["boss", "evento", "loja"]);
 
 function categoryTokens(card = {}) {
     const values = [
@@ -207,20 +172,14 @@ export function isPlayerDeckEligible(card) {
     const def = Number(card?.def);
 
     if (!card || card.originalId == null) return false;
-    if (!Number.isFinite(mana) || !Number.isFinite(atk) || !Number.isFinite(def)) {
-        return false;
-    }
+    if (!Number.isFinite(mana) || !Number.isFinite(atk) || !Number.isFinite(def)) return false;
 
-    return !categoryTokens(card).some(token =>
-        EXCLUDED_PLAYER_CATEGORIES.has(token)
-    );
+    return !categoryTokens(card).some(token => EXCLUDED_PLAYER_CATEGORIES.has(token));
 }
 
 export async function getStoryDeckCards() {
     const saved = await get(STORES.PROGRESS, STORY_DECK_KEY);
-    const ids = Array.isArray(saved?.originalIds)
-        ? saved.originalIds.map(String)
-        : [];
+    const ids = Array.isArray(saved?.originalIds) ? saved.originalIds.map(String) : [];
 
     if (ids.length !== STORY_DECK_SIZE) return null;
 
@@ -233,9 +192,7 @@ export async function getStoryDeckCards() {
         selected.length !== STORY_DECK_SIZE ||
         new Set(selected.map(card => String(card.originalId))).size !== STORY_DECK_SIZE ||
         selected.some(card => !isPlayerDeckEligible(card))
-    ) {
-        return null;
-    }
+    ) return null;
 
     return selected;
 }
@@ -249,9 +206,7 @@ export async function clearStoryDeck() {
 }
 
 export async function saveStoryDeck(originalIds) {
-    const ids = Array.isArray(originalIds)
-        ? originalIds.map(String)
-        : [];
+    const ids = Array.isArray(originalIds) ? originalIds.map(String) : [];
 
     if (ids.length !== STORY_DECK_SIZE) {
         throw new Error("O Baralho da História precisa ter exatamente 25 cartas.");
@@ -262,14 +217,10 @@ export async function saveStoryDeck(originalIds) {
     }
 
     const cards = await getAll(STORES.COLLECTION);
-    const selected = ids.map(id =>
-        cards.find(card => String(card.originalId) === id)
-    );
+    const selected = ids.map(id => cards.find(card => String(card.originalId) === id));
 
     if (selected.some(card => !card || !isPlayerDeckEligible(card))) {
-        throw new Error(
-            "A seleção contém cartas inválidas ou pertencentes a Boss, Evento ou Loja."
-        );
+        throw new Error("A seleção contém cartas inválidas ou pertencentes a Boss, Evento ou Loja.");
     }
 
     const { addCardToInventory } = await import("../player/inventory.js");
@@ -301,7 +252,6 @@ export async function saveStoryDeck(originalIds) {
     return selected;
 }
 
-
 function randomize(items) {
     return [...items].sort(() => Math.random() - 0.5);
 }
@@ -317,17 +267,12 @@ function cardBelongsToSource(card, source = {}) {
     let collectionMatches = true;
 
     if (expectedCollectionId != null && expectedCollectionId !== "") {
-        collectionMatches =
-            String(card.collectionId ?? "") === String(expectedCollectionId);
+        collectionMatches = String(card.collectionId ?? "") === String(expectedCollectionId);
     }
 
-    if (
-        collectionMatches &&
-        expectedCollectionName
-    ) {
+    if (collectionMatches && expectedCollectionName) {
         collectionMatches =
-            normalizeText(card.collectionName || card.work) ===
-            expectedCollectionName;
+            normalizeText(card.collectionName || card.work) === expectedCollectionName;
     }
 
     if (!collectionMatches) return false;
@@ -336,27 +281,16 @@ function cardBelongsToSource(card, source = {}) {
     const expectedCategoryName = normalizeText(source.categoryName);
 
     if (expectedCategoryId != null && expectedCategoryId !== "") {
-        if (String(card.categoryId ?? "") === String(expectedCategoryId)) {
-            return true;
-        }
+        if (String(card.categoryId ?? "") === String(expectedCategoryId)) return true;
     }
 
     if (expectedCategoryName) {
-        const path = Array.isArray(card.path)
-            ? card.path.map(normalizeText)
-            : [];
-
-        return (
-            normalizeText(card.categoryName) === expectedCategoryName ||
-            path.includes(expectedCategoryName)
-        );
+        const path = Array.isArray(card.path) ? card.path.map(normalizeText) : [];
+        return normalizeText(card.categoryName) === expectedCategoryName ||
+            path.includes(expectedCategoryName);
     }
 
     return true;
-}
-
-function cardBelongsToWork(card, work) {
-    return normalizeText(card.work) === normalizeText(work);
 }
 
 export function getCardsForSource(cards, source = {}) {
@@ -402,18 +336,11 @@ export async function generateRewardOptions(stageId) {
     }
 
     let candidates = eligibleRewardCards(sourceCards, stage);
-
-    // Quando a coleção ainda está incompleta, usa cartas da própria
-    // coleção/categoria, nunca cartas de outra obra.
-    if (!candidates.length) {
-        candidates = sourceCards;
-    }
+    if (!candidates.length) candidates = sourceCards;
 
     const options = randomize(candidates).slice(0, 3);
 
-    progress.pendingRewards[stage.id] =
-        options.map(card => String(card.originalId));
-
+    progress.pendingRewards[stage.id] = options.map(card => String(card.originalId));
     await saveProgress(progress);
     return options;
 }
@@ -428,21 +355,15 @@ export async function getEnemyDeckCards(stageId) {
     if (!sourceCards.length) {
         throw new Error(
             'Não há cartas importadas para "' +
-            (stage.source.collectionName || stage.work) +
-            '" nesta campanha.'
+            (stage.source.collectionName || stage.work) + '" nesta campanha.'
         );
     }
 
     let pool = sourceCards.filter(card => {
         const mana = Number(card.mana);
-        return Number.isFinite(mana) &&
-            mana >= stage.minMana &&
-            mana <= stage.maxMana;
+        return Number.isFinite(mana) && mana >= stage.minMana && mana <= stage.maxMana;
     });
 
-    // Conteúdo incompleto: se a coleção possui cartas, mas ainda não
-    // possui cartas suficientes para esta faixa de Mana, continuamos
-    // usando somente cartas da mesma fonte.
     if (!pool.length) {
         pool = sourceCards.filter(card => Number.isFinite(Number(card.mana)));
     }
@@ -458,9 +379,7 @@ export async function getEnemyDeckCards(stageId) {
     const deck = [];
     const shuffled = randomize(pool);
 
-    for (let i = 0; i < 25; i++) {
-        deck.push(shuffled[i % shuffled.length]);
-    }
+    for (let i = 0; i < 25; i++) deck.push(shuffled[i % shuffled.length]);
 
     return deck;
 }
@@ -495,10 +414,7 @@ export async function claimReward(stageId, originalId) {
     const cards = await getAll(STORES.COLLECTION);
     const card = cards.find(item => String(item.originalId) === normalizedOriginalId);
 
-    if (!card) {
-        throw new Error("A carta escolhida não foi encontrada na Coleção.");
-    }
-
+    if (!card) throw new Error("A carta escolhida não foi encontrada na Coleção.");
     if (!cardBelongsToSource(card, stage.source)) {
         throw new Error("Essa carta não pertence à fonte desta campanha.");
     }
