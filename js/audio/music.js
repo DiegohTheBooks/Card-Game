@@ -72,8 +72,12 @@ function ensureAudio() {
 
     document.body.appendChild(audio);
 
+    let lastSavedTime = 0;
     audio.addEventListener("timeupdate", () => {
-        if (audio.currentTime > 0) saveState();
+        if (audio.currentTime > 0 && audio.currentTime - lastSavedTime >= 2) {
+            lastSavedTime = audio.currentTime;
+            saveState();
+        }
     });
 
     return audio;
@@ -194,6 +198,9 @@ async function startBackgroundMusic() {
     const track = desiredTrack();
     const saved = readState();
 
+    // A música tenta começar imediatamente. Se o navegador bloquear autoplay,
+    // o listener de pointerdown/keydown acima fará a primeira tentativa após
+    // uma interação real do usuário.
     await startTrack(
         track,
         saved?.track === track ? Number(saved.time) || 0 : 0
