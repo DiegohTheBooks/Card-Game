@@ -465,12 +465,6 @@ async function performPlayerAttack(lane) {
     try {
         const result = resolveAttack(state, "player", lane);
 
-        await animateAttack(
-            result.attacker.uid,
-            result.defender?.uid || null,
-            result.type === "direct"
-        );
-
         await animateAttackResult(result);
 
         state.selectedAttackerUid = null;
