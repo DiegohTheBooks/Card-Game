@@ -95,7 +95,7 @@ function getCardAuraClasses(card, side, location) {
         "armadura": "aura-silver",
         "retaliacao": "aura-yellow",
         "protetor": "aura-green-source",
-        "atordoar": "aura-control",
+        "atordoar": "aura-orange",
         "veneno": "aura-red-source",
         "predador-solitario": "aura-violet",
         "fortalecer": "aura-blue-source"
