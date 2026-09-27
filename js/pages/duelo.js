@@ -1244,6 +1244,16 @@ els.arena.addEventListener(
     }
 );
 
+els.endTurn.addEventListener(
+    "click",
+    handleEndTurn
+);
+
+els.sacrifice.addEventListener(
+    "click",
+    handleSacrifice
+);
+
 loadBattle().catch(error => {
     console.error(error);
 
