@@ -1,13 +1,20 @@
 import { getAll, STORES } from "../core/database.js";
 import { getPlayerProfile } from "../player/profile.js";
+import { applyRoundEffects } from "./combat.js";
 
 function cloneCard(card, uid) {
     return {
         ...card,
         uid,
         currentDef: Number(card.def) || 0,
+        baseCurrentDef: Number(card.def) || 0,
         summonedRound: null,
-        attackedRound: null
+        attackedRound: null,
+        stunnedUntilRound: null,
+        statusEffects: {
+            bleeding: false,
+            poison: false
+        }
     };
 }
 
@@ -47,7 +54,8 @@ export async function createBattleState({
 
     const sourcePlayer = playerCards.map(card => ({
         ...card,
-        currentDef: Number(card.def) || 0
+        currentDef: Number(card.def) || 0,
+        baseCurrentDef: Number(card.def) || 0
     }));
 
     const sourceEnemy = enemyCards.length
@@ -142,9 +150,16 @@ export function playCard(state, side, handIndex, laneIndex) {
     hand.splice(handIndex, 1);
     state[manaKey] -= cost;
 
-    card.currentDef = Number(card.def) || 0;
+    card.baseCurrentDef = Number(card.def) || 0;
+    card.currentDef = card.baseCurrentDef;
     card.summonedRound = state.round;
     card.attackedRound = null;
+    card.stunnedUntilRound = null;
+    card.statusEffects = card.statusEffects || {
+        bleeding: false,
+        poison: false
+    };
+
     board[laneIndex] = card;
 
     return card;
@@ -194,6 +209,10 @@ export function startNextRound(state) {
     state.playerMana = state.playerMaxMana;
     state.enemyMana = state.enemyMaxMana;
     state.sacrificedThisRound = false;
+
+    // Efeitos contínuos de Sangramento/Veneno são resolvidos
+    // no começo de cada nova rodada, antes das cartas poderem agir.
+    applyRoundEffects(state);
 
     drawCards(state, "player", 1);
     drawCards(state, "enemy", 1);
