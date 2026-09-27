@@ -499,67 +499,6 @@ async function playCombatActionQueue(result) {
     render();
 }
 
-async function performPlayerAttack(lane) {
-    if (busy || !state || state.turn !== "player") {
-        return;
-    }
-
-    const card = state.playerBoard[lane];
-
-    if (!card) {
-        state.status = "Não há carta nessa lane.";
-        render();
-        return;
-    }
-
-    const blockReason = getAttackBlockReason(state, "player", lane);
-
-    if (blockReason) {
-        state.selectedAttackerUid = card.uid;
-        state.status = blockReason;
-        render();
-        return;
-    }
-
-    busy = true;
-    state.selectedAttackerUid = card.uid;
-    state.selectedHandUid = null;
-    selectedEnemyUid = null;
-    state.status = "Ataque em andamento...";
-    render();
-
-    try {
-        const result = resolveAttack(state, "player", lane);
-
-        // O motor já calculou a ação; a fila agora apresenta
-        // cada acontecimento no ritmo da batalha.
-        await playCombatActionQueue(result);
-
-        state.selectedAttackerUid = null;
-
-        if (isBattleOver(state)) {
-            busy = false;
-            render();
-            await finishBattle();
-            return;
-        }
-
-        state.status =
-            result.type === "direct"
-                ? "Ataque direto concluído."
-                : result.destroyed
-                    ? "O defensor foi destruído."
-                    : "Ataque concluído.";
-    } catch (error) {
-        state.status =
-            error?.message ||
-            "Não foi possível realizar o ataque.";
-    }
-
-    busy = false;
-    render();
-}
-
 function clearPendingClick(uid) {
     const timer =
         pendingClickTimers.get(uid);
