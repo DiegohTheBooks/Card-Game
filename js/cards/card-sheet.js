@@ -59,7 +59,11 @@ function ensureSheet() {
             width: 100%;
             height: 100%;
             min-height: 430px;
-            object-fit: cover;
+            object-fit: contain;
+            object-position: center;
+            background:
+                radial-gradient(circle at center, rgba(200,169,107,.08), transparent 70%),
+                #080a0f;
         }
 
         .card-sheet-art-placeholder {
