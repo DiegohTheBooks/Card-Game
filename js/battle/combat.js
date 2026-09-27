@@ -178,6 +178,7 @@ function applyDefDamage(state, side, laneIndex, amount) {
         damage,
         incomingDamage: incoming,
         armorReduction,
+        effectiveDefBefore: effectiveDef,
         remainingDef: card.currentDef,
         destroyed
     };
@@ -335,6 +336,7 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
         damage: result.damage,
         incomingDamage: result.incomingDamage,
         armorReduction: result.armorReduction,
+        effectiveDefBefore: result.effectiveDefBefore,
         remainingDef: result.remainingDef,
         destroyed: Boolean(destroyedCard)
     };
@@ -411,7 +413,11 @@ export function resolveAttack(state, side, laneIndex) {
         }
 
         // Dreno recupera 2 DEF sempre que o ataque causou dano.
-        if (result.defender && result.damage > 0 && state.playerBoard.includes(attacker) || state.enemyBoard.includes(attacker)) {
+        if (
+            result.defender &&
+            result.damage > 0 &&
+            hasAbility(attacker, "dreno")
+        ) {
             ensureCardState(attacker);
 
             const attackerLane = attackingBoard.findIndex(
@@ -420,8 +426,6 @@ export function resolveAttack(state, side, laneIndex) {
 
             if (attackerLane >= 0) {
                 const maxDef = Number(attacker.def) || 0;
-                const bonus = getDynamicDefBonus(state, side, attackerLane);
-                const maxEffectiveDef = maxDef + bonus;
 
                 attacker.baseCurrentDef = Math.min(
                     maxDef,
@@ -439,8 +443,8 @@ export function resolveAttack(state, side, laneIndex) {
     const primary = results.find(result => result.laneIndex === laneIndex) || results[0];
 
     if (primary?.defender && primary.destroyed && hasAbility(attacker, "rompedor")) {
-        const defenderDefBefore = Number(primary.defender.def) || 0;
-        const excess = Math.max(0, atk - defenderDefBefore);
+        const defenderDefBefore = Number(primary.effectiveDefBefore) || 0;
+        const excess = Math.max(0, Number(primary.damage) - defenderDefBefore);
 
         if (excess > 0) {
             if (side === "player") {
