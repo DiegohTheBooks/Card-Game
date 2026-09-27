@@ -52,6 +52,25 @@ export function normalizeCard(raw = {}) {
         ""
     ));
 
+    const abilityId = firstValue(
+        raw.abilityId,
+        raw.abilityID,
+        null
+    );
+
+    const abilityName = String(firstValue(
+        raw.abilityName,
+        raw.skillName,
+        ""
+    ));
+
+    const abilityDescription = String(firstValue(
+        raw.abilityDescription,
+        raw.ability,
+        raw.skillDescription,
+        ""
+    ));
+
     return {
         ...raw,
         originalId: String(originalId),
@@ -77,12 +96,13 @@ export function normalizeCard(raw = {}) {
         mana: Number(firstValue(raw.mana, raw.Mana, 0)) || 0,
         atk: Number(firstValue(raw.atk, raw.ATK, raw.attack, 0)) || 0,
         def: Number(firstValue(raw.def, raw.DEF, raw.defense, 0)) || 0,
-        ability: String(firstValue(
-            raw.ability,
-            raw.abilityDescription,
-            raw.skillDescription,
-            ""
-        ))
+
+        // Formato oficial do Álbum V4.
+        // O ID é usado pelo motor; os demais campos são usados pela ficha.
+        abilityId: abilityId === null ? null : String(abilityId),
+        abilityName,
+        abilityDescription,
+        ability: abilityDescription
     };
 }
 
