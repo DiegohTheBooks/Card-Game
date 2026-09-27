@@ -1,9 +1,39 @@
+import { getAudioSettings } from "./settings.js";
+
 const AudioEngine = (() => {
     let context = null;
     let master = null;
     let noiseBuffer = null;
     let muted = false;
-    let volume = 0.72;
+    let masterVolume = 1;
+    let effectsVolume = 0.72;
+    let musicVolume = 1;
+    let settingsLoaded = false;
+
+    function effectiveEffectsVolume() {
+        return masterVolume * effectsVolume;
+    }
+
+    function applyVolume() {
+        if (master) master.gain.value = muted ? 0 : effectiveEffectsVolume();
+    }
+
+    async function loadSettings() {
+        if (settingsLoaded) return;
+        settingsLoaded = true;
+
+        try {
+            const settings = await getAudioSettings();
+            masterVolume = settings.masterVolume;
+            effectsVolume = settings.effectsVolume;
+            musicVolume = settings.musicVolume;
+            muted = settings.muted;
+            applyVolume();
+        } catch (error) {
+            settingsLoaded = false;
+            console.error("Não foi possível carregar as configurações de áudio:", error);
+        }
+    }
 
     function getContext() {
         if (!context) {
@@ -12,7 +42,7 @@ const AudioEngine = (() => {
 
             context = new AudioContextClass();
             master = context.createGain();
-            master.gain.value = volume;
+            master.gain.value = muted ? 0 : effectiveEffectsVolume();
             master.connect(context.destination);
         }
 
@@ -20,6 +50,8 @@ const AudioEngine = (() => {
     }
 
     async function ready() {
+        await loadSettings();
+
         const ctx = getContext();
         if (!ctx) return null;
 
@@ -470,6 +502,7 @@ const AudioEngine = (() => {
         }
     }
 
+
     async function unlock() {
         const ctx = await ready();
         return Boolean(ctx);
@@ -477,23 +510,47 @@ const AudioEngine = (() => {
 
     async function playSound(type) {
         const ctx = await ready();
+
         if (!ctx || muted) return;
+
         play(type);
     }
 
     function setMuted(value) {
         muted = Boolean(value);
+        applyVolume();
     }
 
     function toggleMute() {
         muted = !muted;
+        applyVolume();
         return muted;
     }
 
     function setVolume(value) {
-        volume = Math.max(0, Math.min(1, Number(value) || 0));
-        if (master) master.gain.value = volume;
+        masterVolume = Math.max(0, Math.min(1, Number(value) || 0));
+        applyVolume();
     }
+
+    function setEffectsVolume(value) {
+        effectsVolume = Math.max(0, Math.min(1, Number(value) || 0));
+        applyVolume();
+    }
+
+    function setMusicVolume(value) {
+        musicVolume = Math.max(0, Math.min(1, Number(value) || 0));
+    }
+
+    function getSettings() {
+        return {
+            masterVolume,
+            effectsVolume,
+            musicVolume,
+            muted
+        };
+    }
+
+    loadSettings();
 
     return {
         playSound,
@@ -501,6 +558,9 @@ const AudioEngine = (() => {
         setMuted,
         toggleMute,
         setVolume,
+        setEffectsVolume,
+        setMusicVolume,
+        getSettings,
         isMuted: () => muted
     };
 })();
@@ -510,4 +570,7 @@ export const unlockAudio = AudioEngine.unlock;
 export const setMuted = AudioEngine.setMuted;
 export const toggleMute = AudioEngine.toggleMute;
 export const setVolume = AudioEngine.setVolume;
+export const setEffectsVolume = AudioEngine.setEffectsVolume;
+export const setMusicVolume = AudioEngine.setMusicVolume;
+export const getAudioSettings = AudioEngine.getSettings;
 export const isMuted = AudioEngine.isMuted;
