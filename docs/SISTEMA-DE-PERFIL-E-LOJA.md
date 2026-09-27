@@ -25,9 +25,9 @@ A Coleção possui duas operações:
 ## Loja
 A Loja, loja.html, recebe cartas individuais exportadas pelo Criador. A carta é registrada no banco da Coleção e também em shopItems, separando conteúdo especial/limitado do conjunto base.
 
-A compra/resgate e os preços ainda não fazem parte desta etapa. Os metadados shopPrice e shopCurrency podem ser enviados no JSON e serão preservados no cadastro da Loja.
+Cada carta da Loja custa **3.000 de ouro**. O preço é fixo para as cartas vendidas pela Loja nesta versão, independentemente do valor enviado no JSON. A compra/resgate utiliza ouro e será integrada ao sistema de moedas da Loja conforme a economia do jogo for finalizada.
 
-## Fluxo
+## Economia da Loja\n\nO valor de 3.000 de ouro foi definido como um preço significativo, mas alcançável: o ouro deve ser obtido naturalmente durante a exploração do jogo e pelas recompensas, mantendo as cartas da Loja como uma aquisição que exige planejamento sem tornar a coleção inacessível.\n\n## Fluxo
 Criador → JSON individual → Loja → Coleção + shopItems.
 Criador → JSON individual → Coleção → nova carta adicionada sem substituir a Coleção.
 
