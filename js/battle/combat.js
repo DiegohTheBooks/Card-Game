@@ -1,17 +1,5 @@
 import { isBattleOver } from "./battle.js";
-
-function abilityText(card) {
-    return String(
-        card?.abilityName ||
-        card?.ability ||
-        card?.abilityDescription ||
-        ""
-    ).toLowerCase();
-}
-
-function hasAbility(card, name) {
-    return abilityText(card).includes(name);
-}
+import { hasAbility } from "./abilities.js";
 
 function ensureCardState(card) {
     if (!card) return;
