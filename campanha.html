@@ -1,78 +1,56 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CARD DUELS — História</title>
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/campanha.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARD DUELS — História</title>
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/campanha.css">
 </head>
 <body class="page-campanha">
-    <main class="app-shell">
-        <header class="page-header compact">
-            <a class="back-link" href="index.html">← Menu</a>
-            <p class="eyebrow">CARD DUELS V7 · HISTÓRIA</p>
-            <h1>História</h1>
-            <p class="subtitle">Quatro obras. Quarenta batalhas. Quatro Bosses com estilos próprios.</p>
-        </header>
+<main class="app-shell">
+<header class="page-header compact">
+<a class="back-link" href="index.html">← Menu</a>
+<p class="eyebrow">CARD DUELS V7 · HISTÓRIA</p>
+<h1>História</h1>
+<p class="subtitle">Escolha uma campanha para entrar em sua história.</p>
+</header>
+<section class="campaign-intro">
+<div>
+<span class="campaign-kicker">MODO HISTÓRIA</span>
+<h2>Explore os mundos de Além das Páginas</h2>
+<p>Cada campanha possui 10 batalhas: 9 oponentes e um Boss. Entre em uma campanha para conhecer seus adversários e iniciar os duelos.</p>
+</div>
+<div class="campaign-rule">
+<strong>6 campanhas</strong>
+<span>Quatro obras originais e duas obras já conhecidas formam a base inicial da História.</span>
+</div>
+</section>
+<section id="campaignMap" class="campaign-map campaign-cards-grid" aria-live="polite"></section>
+</main>
 
-        <section class="campaign-intro">
-            <div>
-                <span class="campaign-kicker">MODO HISTÓRIA</span>
-                <h2>Explore os mundos de Além das Páginas</h2>
-                <p>
-                    Cada campanha possui 10 batalhas: 9 confrontos comuns e um Boss.
-                    Os adversários usam cartas da obra correspondente e os Bosses podem
-                    utilizar cartas de Mana 6.
-                </p>
-            </div>
-            <div class="campaign-rule">
-                <strong>Recompensas por obra</strong>
-                <span>
-                    As vitórias geram opções de cartas pertencentes à obra da campanha.
-                    Bosses também podem oferecer cartas de Mana 6.
-                </span>
-            </div>
-        </section>
+<div id="storyDeckOverlay" class="story-deck-overlay" aria-hidden="true">
+<div class="story-deck-modal" role="dialog" aria-modal="true" aria-labelledby="storyDeckTitle">
+<span class="campaign-kicker">PRIMEIRO ACESSO À HISTÓRIA</span>
+<h2 id="storyDeckTitle">Escolha seu Baralho da História</h2>
+<p>Escolha exatamente 25 cartas para formar seu baralho inicial. Boss, Evento e Loja não podem ser escolhidos.</p>
+<div class="story-deck-summary"><strong><span id="storyDeckSelectedCount">0</span> / 25</strong><span id="storyDeckAvailableCount">Carregando cartas...</span></div>
+<div id="storyDeckGrid" class="story-deck-grid"></div>
+<p id="storyDeckStatus" class="story-deck-status"></p>
+<div class="story-deck-actions"><button id="confirmStoryDeck" class="button-primary" type="button" disabled>Confirmar Baralho</button></div>
+</div>
+</div>
 
-        <section id="campaignMap" class="campaign-map" aria-live="polite"></section>
-    </main>
-
-    
-    <div id="storyDeckOverlay" class="story-deck-overlay" aria-hidden="true">
-        <div class="story-deck-modal" role="dialog" aria-modal="true" aria-labelledby="storyDeckTitle">
-            <span class="campaign-kicker">PRIMEIRO ACESSO À HISTÓRIA</span>
-            <h2 id="storyDeckTitle">Escolha seu Baralho da História</h2>
-            <p>
-                Escolha exatamente 25 cartas para formar seu baralho inicial.
-                Boss, Evento e Loja não podem ser escolhidos.
-                Depois de confirmado, este será o seu baralho usado na História.
-            </p>
-            <div class="story-deck-summary">
-                <strong><span id="storyDeckSelectedCount">0</span> / 25</strong>
-                <span id="storyDeckAvailableCount">Carregando cartas...</span>
-            </div>
-            <div id="storyDeckGrid" class="story-deck-grid"></div>
-            <p id="storyDeckStatus" class="story-deck-status"></p>
-            <div class="story-deck-actions">
-                <button id="confirmStoryDeck" class="button-primary" type="button" disabled>
-                    Confirmar Baralho
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div id="rewardOverlay" class="reward-overlay" aria-hidden="true">
-        <div class="reward-modal" role="dialog" aria-modal="true" aria-labelledby="rewardStageName">
-            <button id="closeReward" class="reward-close" type="button" aria-label="Fechar">×</button>
-            <span class="campaign-kicker" id="rewardCampaignName">CAMPANHA</span>
-            <h2 id="rewardStageName">Recompensa</h2>
-            <p>Escolha uma carta para adicionar ao seu Inventário.</p>
-            <div id="rewardGrid" class="reward-grid"></div>
-            <p id="rewardStatus" class="reward-status"></p>
-        </div>
-    </div>
-
-    <script type="module" src="js/pages/campanha.js"></script>
+<div id="rewardOverlay" class="reward-overlay" aria-hidden="true">
+<div class="reward-modal" role="dialog" aria-modal="true" aria-labelledby="rewardStageName">
+<button id="closeReward" class="reward-close" type="button" aria-label="Fechar">×</button>
+<span class="campaign-kicker" id="rewardCampaignName">CAMPANHA</span>
+<h2 id="rewardStageName">Recompensa</h2>
+<p>Escolha uma carta para adicionar ao seu Inventário.</p>
+<div id="rewardGrid" class="reward-grid"></div>
+<p id="rewardStatus" class="reward-status"></p>
+</div>
+</div>
+<script type="module" src="js/pages/campanha.js"></script>
 </body>
 </html>
