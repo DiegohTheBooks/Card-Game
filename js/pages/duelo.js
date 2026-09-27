@@ -186,56 +186,28 @@ function renderHud() {
 
 function renderSideSheet(container, card, sideLabel) {
     if (!container) return;
-
     if (!card) {
-        container.innerHTML =
-            '<div class="sheet-empty">' +
-            'Selecione uma carta ' +
-            sideLabel +
-            ' para consultar a ficha.' +
-            '</div>';
+        container.innerHTML = '<div class="sheet-empty">Selecione uma carta ' + sideLabel + ' para consultar a ficha.</div>';
         return;
     }
-
     const image = getCardImage(card);
-    const currentDef =
-        card.currentDef ?? card.def ?? "—";
-
-    const ability =
-        String(card.ability || "").trim() ||
-        "Nenhuma habilidade cadastrada.";
-
+    const currentDef = card.currentDef ?? card.def ?? "—";
+    const ability = String(card.ability || "").trim() || "Nenhuma habilidade cadastrada.";
     container.innerHTML = `
-        ${image
-            ? '<img class="sheet-portrait" src="' +
-              escapeHtml(image) +
-              '" alt="' +
-              escapeHtml(card.name || "Carta") +
-              '">'
-            : ""}
-        <div class="sheet-kicker">FICHA DO PERSONAGEM</div>
-        <h3 class="sheet-name">${escapeHtml(card.name || "Carta")}</h3>
-        <div class="sheet-work">${escapeHtml(card.work || "Geral")}</div>
-        <div class="sheet-line"></div>
-
-        <div class="sheet-stats">
-            <div class="sheet-stat">
-                <strong>${card.mana ?? "—"}</strong>
-                <span>Mana</span>
-            </div>
-            <div class="sheet-stat">
-                <strong>${card.atk ?? "—"}</strong>
-                <span>ATK</span>
-            </div>
-            <div class="sheet-stat">
-                <strong>${currentDef}</strong>
-                <span>DEF</span>
-            </div>
+        <div class="sheet-card-area">
+            ${image ? '<img class="sheet-portrait" src="' + escapeHtml(image) + '" alt="' + escapeHtml(card.name || "Carta") + '">' : '<div class="sheet-portrait-placeholder">Carta</div>'}
         </div>
-
-        <div class="sheet-ability">
-            <strong>Habilidade</strong><br>
-            ${escapeHtml(ability)}
+        <div class="sheet-stats">
+            <div class="sheet-stat"><strong>${card.mana ?? "—"}</strong><span>Mana</span></div>
+            <div class="sheet-stat"><strong>${card.atk ?? "—"}</strong><span>ATK</span></div>
+            <div class="sheet-stat"><strong>${currentDef}</strong><span>DEF</span></div>
+        </div>
+        <div class="sheet-character-info">
+            <div class="sheet-kicker">FICHA DO PERSONAGEM</div>
+            <h3 class="sheet-name">${escapeHtml(card.name || "Carta")}</h3>
+            <div class="sheet-work">${escapeHtml(card.work || "Geral")}</div>
+            <div class="sheet-line"></div>
+            <div class="sheet-ability"><strong>Habilidade</strong><br>${escapeHtml(ability)}</div>
         </div>
     `;
 }
