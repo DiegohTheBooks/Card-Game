@@ -20,7 +20,15 @@ import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
 import { registerAchievementEvent } from "../player/achievements.js";
 import { getStoryDeckCards } from "../campaign/campaign.js";
-import { playSound, unlockAudio } from "../audio/audio.js";
+import {
+    playSound,
+    unlockAudio,
+    testAudio,
+    getAudioState,
+    setMuted,
+    setVolume,
+    isMuted
+} from "../audio/audio.js";
 
 let audioUnlocked = false;
 
@@ -31,6 +39,76 @@ async function ensureAudioUnlocked() {
 
 window.addEventListener("pointerdown", ensureAudioUnlocked, { once: true });
 window.addEventListener("keydown", ensureAudioUnlocked, { once: true });
+
+function updateAudioStatus(text, ok = null) {
+    if (!els.audioStatus) return;
+    els.audioStatus.textContent = text;
+    els.audioStatus.classList.toggle("is-ok", ok === true);
+    els.audioStatus.classList.toggle("is-error", ok === false);
+}
+
+async function refreshAudioStatus() {
+    const state = getAudioState();
+
+    if (state === "running") {
+        updateAudioStatus("Áudio: ativo", true);
+        return;
+    }
+
+    if (state === "suspended") {
+        updateAudioStatus("Áudio: suspenso", false);
+        return;
+    }
+
+    updateAudioStatus("Áudio: " + state, null);
+}
+
+async function handleAudioTest() {
+    const unlocked = await unlockAudio();
+    audioUnlocked = unlocked;
+
+    const result = await testAudio();
+
+    if (result.ok) {
+        updateAudioStatus("Áudio: FUNCIONANDO", true);
+        return;
+    }
+
+    if (result.state === "muted") {
+        updateAudioStatus("Áudio: silenciado", false);
+        return;
+    }
+
+    updateAudioStatus("Áudio: ERRO (" + result.state + ")", false);
+    console.error("Teste de áudio falhou. Estado:", getAudioState());
+}
+
+async function handleAudioMute() {
+    const muted = !isMuted();
+    setMuted(muted);
+
+    if (els.audioMute) {
+        els.audioMute.textContent = muted ? "Som OFF" : "Som";
+    }
+
+    updateAudioStatus(muted ? "Áudio: silenciado" : "Áudio: ativo", !muted);
+}
+
+if (els.audioVolume) {
+    els.audioVolume.addEventListener("input", event => {
+        setVolume(Number(event.target.value) / 100);
+    });
+}
+
+if (els.audioTest) {
+    els.audioTest.addEventListener("click", handleAudioTest);
+}
+
+if (els.audioMute) {
+    els.audioMute.addEventListener("click", handleAudioMute);
+}
+
+refreshAudioStatus();
 
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
@@ -62,7 +140,11 @@ const els = {
     resultOverlay: document.getElementById("battleResultOverlay"),
     resultTitle: document.getElementById("battleResultTitle"),
     resultText: document.getElementById("battleResultText"),
-    resultPrimary: document.getElementById("resultPrimary")
+    resultPrimary: document.getElementById("resultPrimary"),
+    audioTest: document.getElementById("audioTestButton"),
+    audioMute: document.getElementById("audioMuteButton"),
+    audioVolume: document.getElementById("audioVolume"),
+    audioStatus: document.getElementById("audioStatus")
 };
 
 let state = null;
@@ -1360,6 +1442,7 @@ els.sacrifice.addEventListener(
     handleSacrifice
 );
 
+refreshAudioStatus();
 loadBattle().catch(error => {
     console.error(error);
 
