@@ -108,7 +108,6 @@ if (els.audioMute) {
     els.audioMute.addEventListener("click", handleAudioMute);
 }
 
-refreshAudioStatus();
 
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
