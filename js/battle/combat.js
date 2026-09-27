@@ -306,11 +306,31 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
     const defender = defendingBoard[targetLane];
 
     if (!defender) {
+        // Lane vazia: o ataque acerta diretamente o PV do adversário.
+        // Golpe Amplo continua atingindo apenas cartas existentes nas
+        // lanes adjacentes; a lane central vazia é ataque direto.
+        if (targetLane === laneIndex) {
+            if (side === "player") {
+                state.enemyHp = Math.max(0, state.enemyHp - atk);
+            } else {
+                state.playerHp = Math.max(0, state.playerHp - atk);
+            }
+
+            return {
+                laneIndex: targetLane,
+                defender: null,
+                damage: atk,
+                destroyed: false,
+                direct: true
+            };
+        }
+
         return {
             laneIndex: targetLane,
             defender: null,
             damage: 0,
-            destroyed: false
+            destroyed: false,
+            direct: false
         };
     }
 
@@ -471,7 +491,7 @@ export function resolveAttack(state, side, laneIndex) {
     const destroyed = results.some(result => result.destroyed);
 
     return {
-        type: broad ? "wide" : "lane",
+        type: primary?.direct ? "direct" : (broad ? "wide" : "lane"),
         attacker,
         defender: primary?.defender || null,
         damage: primary?.damage || 0,
