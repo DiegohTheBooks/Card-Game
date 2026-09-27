@@ -349,18 +349,21 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
         ? destroyCard(state, defendingSide, targetLane)
         : null;
 
+    let stunApplied = false;
+    let poisonApplied = false;
+
     if (destroyedCard) {
         // Atordoar só funciona quando a destruição ocorreu como
         // consequência de um ataque contra a carta.
         if (hasAbility(destroyedCard, "atordoar")) {
             attacker.stunnedUntilRound = state.round + 1;
-            result.stunApplied = true;
+            stunApplied = true;
         }
 
         // Veneno é aplicado ao atacante imediatamente.
         if (hasAbility(destroyedCard, "veneno")) {
             applyContinuousEffect(attacker, "poison");
-            result.poisonApplied = true;
+            poisonApplied = true;
         }
     }
 
@@ -372,7 +375,10 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
         armorReduction: result.armorReduction,
         effectiveDefBefore: result.effectiveDefBefore,
         remainingDef: result.remainingDef,
-        destroyed: Boolean(destroyedCard)
+        destroyed: Boolean(destroyedCard),
+        stunApplied,
+        poisonApplied,
+        excessDamage: 0
     };
 }
 
