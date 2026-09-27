@@ -1,4 +1,4 @@
-import { getAudioSettings } from "./settings.js";
+import { getAudioSettings as loadSavedAudioSettings } from "./settings.js";
 
 const AudioEngine = (() => {
     let context = null;
@@ -23,7 +23,7 @@ const AudioEngine = (() => {
         settingsLoaded = true;
 
         try {
-            const settings = await getAudioSettings();
+            const settings = await loadSavedAudioSettings();
             masterVolume = settings.masterVolume;
             effectsVolume = settings.effectsVolume;
             musicVolume = settings.musicVolume;
