@@ -943,7 +943,6 @@ async function handleEndTurn() {
         if (!card || getAttackBlockReason(state, "player", lane)) continue;
 
         const result = resolveAttack(state, "player", lane);
-        render();
         await playCombatActionQueue(result);
 
         if (isBattleOver(state)) break;
