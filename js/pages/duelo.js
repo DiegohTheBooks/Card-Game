@@ -525,7 +525,6 @@ async function performPlayerAttack(lane) {
 
     try {
         const result = resolveAttack(state, "player", lane);
-        render();
         await playCombatActionQueue(result);
 
         state.selectedAttackerUid = null;
@@ -1110,7 +1109,6 @@ async function handleEndTurn() {
         }
 
         if (action.type === "attack") {
-            render();
             await playCombatActionQueue(action.result);
 
             if (isBattleOver(state)) break;
