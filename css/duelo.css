@@ -1030,3 +1030,183 @@
     font-size:11px;
     line-height:1.4;
 }
+
+
+/* =========================================================
+   V7.1 — AURAS DE ESTADO DAS CARTAS
+   A carta continua limpa; o estado vive ao redor dela.
+   ========================================================= */
+
+.battle-card[class*="aura-"]{
+    isolation:isolate;
+    overflow:visible;
+    z-index:2;
+}
+
+.battle-card[class*="aura-"]::before{
+    content:"";
+    position:absolute;
+    inset:-5px;
+    z-index:-2;
+    border-radius:16px;
+    pointer-events:none;
+    opacity:.72;
+    filter:blur(7px);
+    animation:card-aura-breathe 2.2s ease-in-out infinite;
+}
+
+.battle-card[class*="aura-"]::after{
+    content:"";
+    position:absolute;
+    inset:-2px;
+    z-index:-1;
+    border-radius:14px;
+    pointer-events:none;
+    border:2px solid rgba(255,255,255,.12);
+    opacity:.82;
+    animation:card-aura-edge 2.2s ease-in-out infinite;
+}
+
+/* Habilidades próprias */
+.battle-card.aura-gold::before{
+    background:radial-gradient(ellipse at center,rgba(245,196,72,.38),rgba(245,196,72,.08) 58%,transparent 76%);
+}
+.battle-card.aura-gold::after{border-color:rgba(245,196,72,.72)}
+
+.battle-card.aura-yellow::before{
+    background:radial-gradient(ellipse at center,rgba(255,231,126,.48),rgba(255,215,76,.10) 58%,transparent 76%);
+}
+.battle-card.aura-yellow::after{border-color:rgba(255,231,126,.9)}
+
+.battle-card.aura-blue-source::before{
+    background:radial-gradient(ellipse at center,rgba(71,148,255,.42),rgba(71,148,255,.08) 58%,transparent 76%);
+}
+.battle-card.aura-blue-source::after{border-color:rgba(105,174,255,.82)}
+
+.battle-card.aura-green-source::before{
+    background:radial-gradient(ellipse at center,rgba(74,205,119,.40),rgba(74,205,119,.08) 58%,transparent 76%);
+}
+.battle-card.aura-green-source::after{border-color:rgba(102,225,143,.82)}
+
+.battle-card.aura-red-source::before{
+    background:radial-gradient(ellipse at center,rgba(239,68,68,.46),rgba(239,68,68,.10) 58%,transparent 76%);
+}
+.battle-card.aura-red-source::after{border-color:rgba(255,95,95,.84)}
+
+.battle-card.aura-teal::before{
+    background:radial-gradient(ellipse at center,rgba(54,211,190,.38),rgba(54,211,190,.07) 58%,transparent 76%);
+}
+.battle-card.aura-teal::after{border-color:rgba(87,225,208,.78)}
+
+.battle-card.aura-orange::before{
+    background:radial-gradient(ellipse at center,rgba(255,145,55,.42),rgba(255,145,55,.08) 58%,transparent 76%);
+}
+.battle-card.aura-orange::after{border-color:rgba(255,166,83,.82)}
+
+.battle-card.aura-purple::before{
+    background:radial-gradient(ellipse at center,rgba(151,95,255,.42),rgba(151,95,255,.08) 58%,transparent 76%);
+}
+.battle-card.aura-purple::after{border-color:rgba(178,130,255,.82)}
+
+.battle-card.aura-silver::before{
+    background:radial-gradient(ellipse at center,rgba(205,215,228,.34),rgba(205,215,228,.07) 58%,transparent 76%);
+}
+.battle-card.aura-silver::after{border-color:rgba(222,231,242,.72)}
+
+.battle-card.aura-control::before{
+    background:radial-gradient(ellipse at center,rgba(111,57,185,.52),rgba(111,57,185,.10) 58%,transparent 76%);
+    animation:card-aura-stunned 1.35s ease-in-out infinite;
+}
+.battle-card.aura-control::after{
+    border-color:rgba(171,108,255,.88);
+    animation:card-aura-stunned-edge 1.35s ease-in-out infinite;
+}
+
+.battle-card.aura-violet::before{
+    background:radial-gradient(ellipse at center,rgba(132,72,194,.40),rgba(132,72,194,.08) 58%,transparent 76%);
+}
+.battle-card.aura-violet::after{border-color:rgba(177,111,231,.78)}
+
+/* Estados recebidos: mesma família cromática, porém mais suave. */
+.battle-card.aura-blue-received::before{
+    background:radial-gradient(ellipse at center,rgba(71,148,255,.22),rgba(71,148,255,.04) 60%,transparent 78%);
+    opacity:.62;
+}
+.battle-card.aura-blue-received::after{border-color:rgba(105,174,255,.45)}
+
+.battle-card.aura-green-received::before{
+    background:radial-gradient(ellipse at center,rgba(74,205,119,.20),rgba(74,205,119,.04) 60%,transparent 78%);
+    opacity:.62;
+}
+.battle-card.aura-green-received::after{border-color:rgba(102,225,143,.45)}
+
+.battle-card.aura-bleeding::before{
+    background:radial-gradient(ellipse at center,rgba(211,35,48,.30),rgba(211,35,48,.05) 60%,transparent 78%);
+    animation:card-aura-debuff 1.55s ease-in-out infinite;
+}
+.battle-card.aura-bleeding::after{
+    border-color:rgba(239,68,68,.62);
+    animation:card-aura-debuff-edge 1.55s ease-in-out infinite;
+}
+
+.battle-card.aura-poison::before{
+    background:radial-gradient(ellipse at center,rgba(173,35,67,.30),rgba(173,35,67,.05) 60%,transparent 78%);
+    animation:card-aura-debuff 2s ease-in-out infinite;
+}
+.battle-card.aura-poison::after{
+    border-color:rgba(225,66,103,.62);
+    animation:card-aura-debuff-edge 2s ease-in-out infinite;
+}
+
+.battle-card.aura-stunned::before{
+    background:radial-gradient(ellipse at center,rgba(111,57,185,.34),rgba(111,57,185,.06) 60%,transparent 78%);
+    animation:card-aura-stunned 1.35s ease-in-out infinite;
+}
+.battle-card.aura-stunned::after{
+    border-color:rgba(171,108,255,.70);
+    animation:card-aura-stunned-edge 1.35s ease-in-out infinite;
+}
+
+@keyframes card-aura-breathe{
+    0%,100%{transform:scale(.98);opacity:.58}
+    50%{transform:scale(1.025);opacity:.86}
+}
+
+@keyframes card-aura-edge{
+    0%,100%{opacity:.62}
+    50%{opacity:1}
+}
+
+@keyframes card-aura-debuff{
+    0%,100%{transform:scale(.98);opacity:.45}
+    35%{transform:scale(1.025);opacity:.82}
+    70%{transform:scale(1);opacity:.60}
+}
+
+@keyframes card-aura-debuff-edge{
+    0%,100%{opacity:.48}
+    35%{opacity:.92}
+    70%{opacity:.58}
+}
+
+@keyframes card-aura-stunned{
+    0%,100%{transform:scale(.96);opacity:.45}
+    50%{transform:scale(1.04);opacity:.92}
+}
+
+@keyframes card-aura-stunned-edge{
+    0%,100%{opacity:.42}
+    50%{opacity:1}
+}
+
+/* O brilho não deve dominar a carta selecionada. */
+.battle-card.is-selected[class*="aura-"]{
+    box-shadow:0 0 0 2px var(--ap-gold),0 0 22px rgba(200,169,107,.28);
+}
+
+@media (prefers-reduced-motion:reduce){
+    .battle-card[class*="aura-"]::before,
+    .battle-card[class*="aura-"]::after{
+        animation:none;
+    }
+}
