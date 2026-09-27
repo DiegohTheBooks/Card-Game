@@ -199,3 +199,40 @@ export function buildAttackActionQueue(result) {
 export function buildRoundActionQueue(results = []) {
     return results.flatMap(buildAttackActionQueue);
 }
+
+
+export function buildRoundEffectQueue(state) {
+    const queue = [];
+
+    for (const side of ["player", "enemy"]) {
+        const board = side === "player"
+            ? state.playerBoard
+            : state.enemyBoard;
+
+        for (const card of board) {
+            if (!card) continue;
+
+            if (card.statusEffects?.bleeding) {
+                queue.push({
+                    type: "round-effect",
+                    name: "Sangramento",
+                    text: "-2 DEF",
+                    targetUid: card.uid,
+                    amount: 2
+                });
+            }
+
+            if (card.statusEffects?.poison) {
+                queue.push({
+                    type: "round-effect",
+                    name: "Veneno",
+                    text: "-2 DEF",
+                    targetUid: card.uid,
+                    amount: 2
+                });
+            }
+        }
+    }
+
+    return queue;
+}
