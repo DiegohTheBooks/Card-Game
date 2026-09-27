@@ -1,14 +1,7 @@
-function abilityText(card) {
-    return String(
-        card?.abilityName ||
-        card?.ability ||
-        card?.abilityDescription ||
-        ""
-    ).toLowerCase();
-}
+import { hasAbility as cardHasAbility } from "./abilities.js";
 
-function hasAbility(card, name) {
-    return abilityText(card).includes(name);
+function hasAbility(card, abilityId) {
+    return cardHasAbility(card, abilityId);
 }
 
 /**
@@ -39,7 +32,7 @@ export function buildAttackActionQueue(result) {
         });
     }
 
-    if (hasAbility(attacker, "golpe amplo") && targets.length > 1) {
+    if (hasAbility(attacker, "golpe-amplo") && targets.length > 1) {
         queue.push({
             type: "ability",
             name: "Golpe Amplo",
