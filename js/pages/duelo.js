@@ -20,6 +20,7 @@ import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
 import { registerAchievementEvent } from "../player/achievements.js";
 import { getStoryDeckCards } from "../campaign/campaign.js";
+import { playSound } from "../audio/audio.js";
 
 const params = new URLSearchParams(window.location.search);
 const mode = params.get("mode") === "campaign" ? "campaign" : "casual";
@@ -446,6 +447,7 @@ function pulseCard(uid, className = "anim-ability") {
 }
 
 function animateAttackLaunch(attackerUid, side) {
+    playSound("attack");
     const attacker = findCardElement(attackerUid);
 
     if (attacker) {
@@ -462,6 +464,7 @@ function animateAttackLaunch(attackerUid, side) {
 }
 
 function animateImpact(targetUid, amount = 0) {
+    playSound("impact");
     const target = findCardElement(targetUid);
 
     if (!target) {
@@ -480,6 +483,7 @@ function animateImpact(targetUid, amount = 0) {
 }
 
 function animateDirectHit(side, amount) {
+    playSound("direct");
     const hudClass = side === "player" ? ".duel-player-hud.enemy" : ".duel-player-hud.player";
     const hud = document.querySelector(hudClass);
 
@@ -493,11 +497,21 @@ function animateDirectHit(side, amount) {
 }
 
 async function animateDestroy(uid) {
+    playSound("destroy");
     const element = findCardElement(uid);
     if (!element) return;
 
     element.classList.add("anim-destroy");
     await new Promise(resolve => setTimeout(resolve, 430));
+}
+
+function getAbilitySound(name) {
+    const normalized = String(name || "").toLowerCase();
+    if (normalized.includes("dreno")) return "drain";
+    if (normalized.includes("veneno")) return "poison";
+    if (normalized.includes("sangramento")) return "bleeding";
+    if (normalized.includes("atordoar")) return "stun";
+    return "ability";
 }
 
 async function animateCombatAction(action) {
@@ -524,18 +538,21 @@ async function animateCombatAction(action) {
             return;
 
         case "ability":
+            playSound(getAbilitySound(action.name));
             state.status = action.name + (action.text ? " — " + action.text : "");
             pulseCard(action.targetUid);
             await showCombatCallout(action.name, action.text);
             return;
 
         case "retaliation":
+            playSound("retaliation");
             pulseCard(action.targetUid, "anim-retaliation");
             createFloatingNumber(findCardElement(action.targetUid), action.amount);
             await new Promise(resolve => setTimeout(resolve, 430));
             return;
 
         case "heal":
+            playSound("heal");
             pulseCard(action.targetUid, "anim-heal");
             createFloatingNumber(findCardElement(action.targetUid), action.amount, true);
             await new Promise(resolve => setTimeout(resolve, 430));
@@ -552,6 +569,7 @@ async function animateCombatAction(action) {
             return;
 
         case "round-effect":
+            playSound(action.name === "Sangramento" ? "bleeding" : "poison");
             state.status = action.name + " — " + action.text;
             pulseCard(action.targetUid);
             await showCombatCallout(action.name, action.text);
@@ -743,6 +761,8 @@ async function handleArenaClick(event) {
                                 state.status =
                                     card.name +
                                     " foi sacrificada. +1 Mana máxima e +1 Mana atual.";
+
+                                playSound("sacrifice");
                             } catch (error) {
                                 state.status =
                                     error?.message ||
@@ -863,6 +883,7 @@ async function summonSelected(
             card.name +
             " foi invocado.";
 
+        playSound("summon");
         render();
 
         const element =
@@ -973,6 +994,7 @@ async function handleEndTurn() {
     state.status = "Preparando o combate...";
     render();
 
+    playSound("combat");
     await showCombatCallout("MOMENTO DE COMBATE");
 
     // Cada ataque é resolvido pelo motor antes de sua sequência visual.
@@ -1015,6 +1037,7 @@ async function handleEndTurn() {
 
         if (action.type === "play") {
             state.status = action.card.name + " foi invocado pelo inimigo.";
+            playSound("summon");
             render();
 
             const element = findCardElement(action.card.uid);
@@ -1066,6 +1089,7 @@ async function handleEndTurn() {
         return;
     }
 
+    playSound("round");
     await showCombatCallout("NOVA RODADA");
 
     busy = false;
@@ -1078,6 +1102,7 @@ async function finishBattle() {
     if (!winner) return;
 
     if (winner === "player") {
+        playSound("victory");
         const stage = mode === "campaign" ? getStage(stageId) : null;
         const rewardType = mode === "campaign" ? (stage?.boss ? "BOSS" : "CAMPAIGN") : "CASUAL";
         const previousProfile = await getPlayerProfile();
@@ -1146,6 +1171,7 @@ async function finishBattle() {
             }
         }
     } else if (winner === "enemy") {
+        playSound("defeat");
         await registerAchievementEvent("battle", { won: false });
 
         els.resultTitle.textContent =
@@ -1166,6 +1192,7 @@ async function finishBattle() {
                 ? "campanha.html"
                 : "index.html";
     } else {
+        playSound("combat");
         els.resultTitle.textContent =
             "Empate";
 
