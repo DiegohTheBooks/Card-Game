@@ -142,7 +142,7 @@ function destroyCard(state, side, laneIndex) {
     return card;
 }
 
-function applyDefDamage(state, side, laneIndex, amount) {
+function applyDefDamage(state, side, laneIndex, amount, options = {}) {
     const board = side === "player"
         ? state.playerBoard
         : state.enemyBoard;
@@ -160,7 +160,10 @@ function applyDefDamage(state, side, laneIndex, amount) {
     syncCardDef(state, side, laneIndex);
 
     const incoming = Math.max(0, Number(amount) || 0);
-    const armorReduction = hasAbility(card, "armadura") ? 3 : 0;
+    const armorReduction =
+        !options.ignoreArmor && hasAbility(card, "armadura")
+            ? 3
+            : 0;
     const damage = Math.max(0, incoming - armorReduction);
 
     // currentDef inclui os bônus dinâmicos de Protetor.
@@ -402,7 +405,8 @@ export function resolveAttack(state, side, laneIndex) {
                 state,
                 side,
                 laneIndex,
-                2
+                2,
+                { ignoreArmor: true }
             );
 
             if (attacker.currentDef <= 0) {
