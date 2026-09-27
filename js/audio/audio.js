@@ -380,6 +380,36 @@ const AudioEngine = (() => {
         return Boolean(ctx);
     }
 
+    async function test() {
+        const ctx = await ready();
+        if (!ctx) {
+            return { ok: false, state: "unavailable" };
+        }
+
+        if (muted) {
+            return { ok: false, state: "muted" };
+        }
+
+        try {
+            tone(ctx, 880, 0.22, {
+                type: "sine",
+                startFrequency: 880,
+                endFrequency: 660,
+                gain: 0.12,
+                attack: 0.01,
+                release: 0.08
+            });
+
+            return { ok: true, state: ctx.state };
+        } catch (_) {
+            return { ok: false, state: ctx.state };
+        }
+    }
+
+    function getState() {
+        return context?.state || "not-created";
+    }
+
     async function playSound(type) {
         const ctx = await ready();
         if (!ctx || muted) return;
@@ -403,6 +433,8 @@ const AudioEngine = (() => {
     return {
         playSound,
         unlock,
+        test,
+        getState,
         setMuted,
         toggleMute,
         setVolume,
@@ -412,6 +444,8 @@ const AudioEngine = (() => {
 
 export const playSound = AudioEngine.playSound;
 export const unlockAudio = AudioEngine.unlock;
+export const testAudio = AudioEngine.test;
+export const getAudioState = AudioEngine.getState;
 export const setMuted = AudioEngine.setMuted;
 export const toggleMute = AudioEngine.toggleMute;
 export const setVolume = AudioEngine.setVolume;
