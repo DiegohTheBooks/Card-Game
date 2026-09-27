@@ -845,3 +845,92 @@
         width: min(100% - 20px, 1180px);
     }
 }
+
+/* Ficha lateral — carta grande na área superior e atributos imediatamente abaixo. */
+@media (min-width: 1181px) {
+    .page-duelo .side-sheet {
+        padding: 10px;
+        align-self: start;
+        height: auto;
+        min-height: 0;
+    }
+
+    .page-duelo .sheet-card-area {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+    }
+
+    .page-duelo .side-sheet .sheet-portrait,
+    .page-duelo .side-sheet .sheet-portrait-placeholder {
+        width: 100%;
+        height: auto;
+        max-height: none;
+        aspect-ratio: 2 / 3;
+        object-fit: contain;
+        object-position: center;
+        margin: 0;
+        border-radius: 10px;
+    }
+
+    .page-duelo .side-sheet .sheet-portrait-placeholder {
+        display: grid;
+        place-items: center;
+        color: var(--ap-muted);
+        background: #080a0f;
+        border: 1px solid var(--ap-border);
+    }
+
+    .page-duelo .side-sheet .sheet-stats {
+        width: 100%;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+        margin: 8px 0 10px;
+    }
+
+    .page-duelo .side-sheet .sheet-stat {
+        padding: 7px 3px;
+        border-radius: 7px;
+    }
+
+    .page-duelo .side-sheet .sheet-stat strong {
+        font-size: 17px;
+        line-height: 1;
+    }
+
+    .page-duelo .side-sheet .sheet-stat span {
+        font-size: 8px;
+    }
+
+    .page-duelo .side-sheet .sheet-character-info {
+        min-width: 0;
+    }
+
+    .page-duelo .side-sheet .sheet-kicker {
+        margin-bottom: 2px;
+    }
+
+    .page-duelo .side-sheet .sheet-name {
+        font-size: 17px;
+    }
+
+    .page-duelo .side-sheet .sheet-work {
+        font-size: 10px;
+    }
+
+    .page-duelo .side-sheet .sheet-line {
+        margin: 7px 0;
+    }
+
+    .page-duelo .side-sheet .sheet-ability {
+        padding: 8px;
+        font-size: 10px;
+    }
+}
+
+@media (min-width: 1500px) {
+    .page-duelo .battle-main-grid {
+        grid-template-columns: 280px minmax(0, 1fr) 280px;
+    }
+}
