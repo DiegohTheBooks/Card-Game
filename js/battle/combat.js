@@ -11,12 +11,14 @@ function ensureCardState(card) {
         };
     }
 
-    if (typeof card.baseCurrentDef !== "number") {
-        card.baseCurrentDef = Number(card.currentDef ?? card.def) || 0;
+    if (typeof card.damageTaken !== "number") {
+        const maxDef = Number(card.def) || 0;
+        const legacyRemaining = Number(card.baseCurrentDef ?? card.currentDef ?? maxDef);
+        card.damageTaken = Math.max(0, maxDef - legacyRemaining);
     }
 
     if (typeof card.currentDef !== "number") {
-        card.currentDef = card.baseCurrentDef;
+        card.currentDef = Math.max(0, (Number(card.def) || 0) - card.damageTaken);
     }
 }
 
@@ -95,7 +97,11 @@ function syncCardDef(state, side, laneIndex) {
     ensureCardState(card);
 
     const bonus = getDynamicDefBonus(state, side, laneIndex);
-    card.currentDef = Math.max(0, card.baseCurrentDef + bonus);
+    const maxDef = Number(card.def) || 0;
+    card.currentDef = Math.max(
+        0,
+        maxDef + bonus - Math.max(0, Number(card.damageTaken) || 0)
+    );
 
     return card.currentDef;
 }
@@ -154,17 +160,8 @@ function applyDefDamage(state, side, laneIndex, amount, options = {}) {
             : 0;
     const damage = Math.max(0, incoming - armorReduction);
 
-    // currentDef inclui os bônus dinâmicos de Protetor.
-    // O dano é aplicado sobre a DEF efetiva e o resultado é
-    // convertido de volta para a DEF própria da carta.
     const effectiveDef = card.currentDef;
-    const remainingEffectiveDef = Math.max(0, effectiveDef - damage);
-    const dynamicBonus = getDynamicDefBonus(state, side, laneIndex);
-
-    card.baseCurrentDef = Math.max(
-        0,
-        remainingEffectiveDef - dynamicBonus
-    );
+    card.damageTaken = Math.max(0, Number(card.damageTaken) || 0) + damage;
 
     syncCardDef(state, side, laneIndex);
 
@@ -195,7 +192,7 @@ function applyRoundEffectToBoard(state, side, laneIndex, effect) {
 
     ensureCardState(card);
 
-    card.baseCurrentDef = Math.max(0, card.baseCurrentDef - 2);
+    card.damageTaken = Math.max(0, Number(card.damageTaken) || 0) + 2;
     syncCardDef(state, side, laneIndex);
 
     if (card.currentDef <= 0) {
@@ -466,11 +463,9 @@ export function resolveAttack(state, side, laneIndex) {
             );
 
             if (attackerLane >= 0) {
-                const maxDef = Number(attacker.def) || 0;
-
-                attacker.baseCurrentDef = Math.min(
-                    maxDef,
-                    attacker.baseCurrentDef + 2
+                    attacker.damageTaken = Math.max(
+                    0,
+                    (Number(attacker.damageTaken) || 0) - 2
                 );
 
                 syncCardDef(state, side, attackerLane);
