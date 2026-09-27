@@ -11,7 +11,10 @@ import {
 } from "../battle/battle.js";
 import { resolveAttack, getAttackBlockReason, getDynamicAtk, syncAllBoardStats } from "../battle/combat.js";
 import { runAiTurnStep } from "../battle/ai.js";
-import { buildAttackActionQueue } from "../battle/combat-events.js";
+import {
+    buildAttackActionQueue,
+    buildRoundEffectQueue
+} from "../battle/combat-events.js";
 import { completeStage, getStage, getEnemyDeckCards } from "../campaign/campaign.js";
 import { getPlayerProfile } from "../player/profile.js";
 import { grantReward } from "../player/rewards.js";
@@ -472,6 +475,12 @@ async function animateCombatAction(action) {
         case "destroy":
             state.status = "Carta destruída.";
             await animateDestroy(action.targetUid);
+            return;
+
+        case "round-effect":
+            state.status = action.name + " — " + action.text;
+            pulseCard(action.targetUid);
+            await showCombatCallout(action.name, action.text);
             return;
 
         default:
@@ -1127,9 +1136,21 @@ async function handleEndTurn() {
     state.status = "Fim da rodada.";
     render();
 
-    await new Promise(resolve => setTimeout(resolve, 420));
+    await new Promise(resolve => setTimeout(resolve, 300));
 
+    // Os efeitos contínuos são calculados pelo motor e apresentados
+    // antes de a nova rodada redesenhar o campo.
+    const roundEffects = buildRoundEffectQueue(state);
     startNextRound(state);
+
+    for (const effect of roundEffects) {
+        await animateCombatAction(effect);
+        if (isBattleOver(state)) break;
+    }
+
+    if (!isBattleOver(state)) {
+        await showCombatCallout("NOVA RODADA");
+    }
 
     busy = false;
     render();
