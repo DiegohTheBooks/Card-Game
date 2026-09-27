@@ -354,11 +354,13 @@ function resolveSingleTarget(state, side, laneIndex, attacker, targetLane, atk) 
         // consequência de um ataque contra a carta.
         if (hasAbility(destroyedCard, "atordoar")) {
             attacker.stunnedUntilRound = state.round + 1;
+            result.stunApplied = true;
         }
 
         // Veneno é aplicado ao atacante imediatamente.
         if (hasAbility(destroyedCard, "veneno")) {
             applyContinuousEffect(attacker, "poison");
+            result.poisonApplied = true;
         }
     }
 
@@ -421,10 +423,19 @@ export function resolveAttack(state, side, laneIndex) {
             atk
         );
 
+        result.retaliationApplied = false;
+        result.attackerDestroyedByRetaliation = false;
+        result.bleedingApplied = false;
+        result.drainApplied = false;
+        result.stunApplied = false;
+        result.poisonApplied = false;
+
         results.push(result);
 
         // Retaliação é resolvida imediatamente após o ataque à carta.
         if (result.defender && hasAbility(result.defender, "retaliação")) {
+            result.retaliationApplied = true;
+
             applyDefDamage(
                 state,
                 side,
@@ -434,6 +445,7 @@ export function resolveAttack(state, side, laneIndex) {
             );
 
             if (attacker.currentDef <= 0) {
+                result.attackerDestroyedByRetaliation = true;
                 const attackerLane = laneIndex;
                 destroyCard(state, side, attackerLane);
                 break;
@@ -443,6 +455,7 @@ export function resolveAttack(state, side, laneIndex) {
         // Sangramento é aplicado ao alvo atingido pelo ataque.
         if (result.defender && !result.destroyed && hasAbility(attacker, "sangramento")) {
             applyContinuousEffect(result.defender, "bleeding");
+            result.bleedingApplied = true;
         }
 
         // Dreno recupera 2 DEF sempre que o ataque causou dano.
@@ -451,6 +464,7 @@ export function resolveAttack(state, side, laneIndex) {
             result.damage > 0 &&
             hasAbility(attacker, "dreno")
         ) {
+            result.drainApplied = true;
             ensureCardState(attacker);
 
             const attackerLane = attackingBoard.findIndex(
