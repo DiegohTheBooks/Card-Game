@@ -139,6 +139,35 @@ export function chooseAiAction(state) {
     return { type: "pass" };
 }
 
+export function runAiTurnStep(state) {
+    state.turn = "enemy";
+
+    const action = chooseAiAction(state);
+
+    if (action.type === "play") {
+        const card = playCard(
+            state,
+            "enemy",
+            action.handIndex,
+            action.lane
+        );
+
+        return { ...action, card };
+    }
+
+    if (action.type === "attack") {
+        const result = resolveAttack(
+            state,
+            "enemy",
+            action.lane
+        );
+
+        return { ...action, result };
+    }
+
+    return action;
+}
+
 export function runAiTurn(state) {
     state.turn = "enemy";
 
