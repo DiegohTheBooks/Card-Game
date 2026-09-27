@@ -381,6 +381,49 @@ function animateAttack(
     );
 }
 
+async function animateAttackResult(result) {
+    if (!result) return;
+
+    const targets = Array.isArray(result.targets) && result.targets.length
+        ? result.targets
+        : [{
+            defender: result.defender,
+            damage: result.damage,
+            destroyed: result.destroyed
+        }];
+
+    const uniqueDefenders = targets
+        .map(target => target.defender?.uid)
+        .filter(Boolean);
+
+    await animateAttack(
+        result.attacker.uid,
+        uniqueDefenders[0] || null,
+        result.type === "direct"
+    );
+
+    for (const target of targets) {
+        if (!target.defender) continue;
+
+        const defenderElement = findCardElement(target.defender.uid);
+
+        if (defenderElement && target.damage > 0) {
+            createDamageNumber(
+                defenderElement,
+                target.damage
+            );
+
+            if (target.destroyed) {
+                defenderElement.classList.add("anim-destroy");
+
+                await new Promise(resolve =>
+                    setTimeout(resolve, 180)
+                );
+            }
+        }
+    }
+}
+
 async function performPlayerAttack(lane) {
     if (
         busy ||
@@ -428,25 +471,7 @@ async function performPlayerAttack(lane) {
             result.type === "direct"
         );
 
-        if (result.defender) {
-            const defenderElement =
-                findCardElement(result.defender.uid);
-
-            if (defenderElement) {
-                createDamageNumber(
-                    defenderElement,
-                    result.damage
-                );
-
-                if (result.destroyed) {
-                    defenderElement.classList.add("anim-destroy");
-
-                    await new Promise(resolve =>
-                        setTimeout(resolve, 300)
-                    );
-                }
-            }
-        }
+        await animateAttackResult(result);
 
         state.selectedAttackerUid = null;
 
@@ -956,33 +981,7 @@ async function handleEndTurn() {
                 action.result.type === "direct"
             );
 
-            if (action.result.defender) {
-                const defenderElement =
-                    findCardElement(
-                        action.result.defender.uid
-                    );
-
-                if (defenderElement) {
-                    createDamageNumber(
-                        defenderElement,
-                        action.result.damage
-                    );
-
-                    if (action.result.destroyed) {
-                        defenderElement.classList.add(
-                            "anim-destroy"
-                        );
-
-                        await new Promise(
-                            resolve =>
-                                setTimeout(
-                                    resolve,
-                                    280
-                                )
-                        );
-                    }
-                }
-            }
+            await animateAttackResult(action.result);
 
             render();
 
