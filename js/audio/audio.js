@@ -130,6 +130,101 @@ const AudioEngine = (() => {
         const when = ctx.currentTime + 0.005;
 
         switch (type) {
+            case "click":
+                tone(ctx, 620, 0.055, {
+                    type: "sine",
+                    startFrequency: 620,
+                    endFrequency: 520,
+                    gain: 0.025,
+                    attack: 0.004,
+                    release: 0.035
+                });
+                break;
+
+            case "select":
+                tone(ctx, 520, 0.075, {
+                    type: "triangle",
+                    startFrequency: 480,
+                    endFrequency: 680,
+                    gain: 0.032,
+                    attack: 0.004,
+                    release: 0.045
+                });
+                break;
+
+            case "navigate":
+                tone(ctx, 430, 0.085, {
+                    type: "triangle",
+                    startFrequency: 390,
+                    endFrequency: 560,
+                    gain: 0.028,
+                    attack: 0.004,
+                    release: 0.055
+                });
+                break;
+
+            case "open":
+                tone(ctx, 420, 0.10, {
+                    type: "sine",
+                    startFrequency: 360,
+                    endFrequency: 560,
+                    gain: 0.028,
+                    attack: 0.005,
+                    release: 0.06
+                });
+                tone(ctx, 680, 0.10, {
+                    type: "sine",
+                    startFrequency: 680,
+                    endFrequency: 820,
+                    gain: 0.022,
+                    when: when + 0.055,
+                    attack: 0.004,
+                    release: 0.05
+                });
+                break;
+
+            case "close":
+                tone(ctx, 560, 0.09, {
+                    type: "sine",
+                    startFrequency: 560,
+                    endFrequency: 390,
+                    gain: 0.025,
+                    attack: 0.004,
+                    release: 0.055
+                });
+                break;
+
+            case "error":
+                tone(ctx, 180, 0.13, {
+                    type: "square",
+                    startFrequency: 190,
+                    endFrequency: 125,
+                    gain: 0.028,
+                    attack: 0.004,
+                    release: 0.075
+                });
+                break;
+
+            case "confirm":
+                tone(ctx, 480, 0.08, {
+                    type: "triangle",
+                    startFrequency: 440,
+                    endFrequency: 620,
+                    gain: 0.03,
+                    attack: 0.004,
+                    release: 0.05
+                });
+                tone(ctx, 700, 0.12, {
+                    type: "sine",
+                    startFrequency: 700,
+                    endFrequency: 860,
+                    gain: 0.025,
+                    when: when + 0.055,
+                    attack: 0.004,
+                    release: 0.065
+                });
+                break;
+
             case "card":
             case "summon":
                 tone(ctx, 260, 0.16, {
