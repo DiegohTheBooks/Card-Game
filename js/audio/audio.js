@@ -375,6 +375,11 @@ const AudioEngine = (() => {
         }
     }
 
+    async function unlock() {
+        const ctx = await ready();
+        return Boolean(ctx);
+    }
+
     async function playSound(type) {
         const ctx = await ready();
         if (!ctx || muted) return;
@@ -397,6 +402,7 @@ const AudioEngine = (() => {
 
     return {
         playSound,
+        unlock,
         setMuted,
         toggleMute,
         setVolume,
@@ -405,6 +411,7 @@ const AudioEngine = (() => {
 })();
 
 export const playSound = AudioEngine.playSound;
+export const unlockAudio = AudioEngine.unlock;
 export const setMuted = AudioEngine.setMuted;
 export const toggleMute = AudioEngine.toggleMute;
 export const setVolume = AudioEngine.setVolume;
