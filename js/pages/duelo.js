@@ -79,10 +79,84 @@ function renderCardStats(card, side, location) {
         '</div>';
 }
 
+function getCardAuraClasses(card, side, location) {
+    if (!card || side === "player-hand") return "";
+
+    const classes = [];
+    const abilityId = String(card.abilityId || "").toLowerCase();
+
+    // A aura da habilidade identifica a função própria da carta.
+    const abilityAura = {
+        "investida": "aura-gold",
+        "sangramento": "aura-red-source",
+        "dreno": "aura-teal",
+        "rompedor": "aura-orange",
+        "golpe-amplo": "aura-purple",
+        "armadura": "aura-silver",
+        "retaliacao": "aura-yellow",
+        "protetor": "aura-green-source",
+        "atordoar": "aura-control",
+        "veneno": "aura-red-source",
+        "predador-solitario": "aura-violet",
+        "fortalecer": "aura-blue-source"
+    };
+
+    if (abilityAura[abilityId]) {
+        classes.push(abilityAura[abilityId]);
+    }
+
+    const board = side === "player" ? state?.playerBoard : state?.enemyBoard;
+    const lane = Number(location);
+
+    // A carta que recebe um buff usa uma aura mais suave da mesma família.
+    if (board && Number.isInteger(lane)) {
+        if (lane > 0) {
+            const left = board[lane - 1];
+            if (left && String(left.abilityId || "").toLowerCase() === "fortalecer") {
+                classes.push("aura-blue-received");
+            }
+            if (left && String(left.abilityId || "").toLowerCase() === "protetor") {
+                classes.push("aura-green-received");
+            }
+        }
+
+        if (lane < board.length - 1) {
+            const right = board[lane + 1];
+            if (right && String(right.abilityId || "").toLowerCase() === "fortalecer") {
+                classes.push("aura-blue-received");
+            }
+            if (right && String(right.abilityId || "").toLowerCase() === "protetor") {
+                classes.push("aura-green-received");
+            }
+        }
+    }
+
+    // Estados negativos pertencem à carta afetada, não à carta que os aplicou.
+    if (card.statusEffects?.bleeding) {
+        classes.push("aura-bleeding");
+    }
+
+    if (card.statusEffects?.poison) {
+        classes.push("aura-poison");
+    }
+
+    // Atordoamento é um estado recebido.
+    if (
+        card.stunnedUntilRound &&
+        state &&
+        state.round <= Number(card.stunnedUntilRound)
+    ) {
+        classes.push("aura-stunned");
+    }
+
+    return [...new Set(classes)].join(" ");
+}
+
 function cardHtml(card, side, location, selected = false) {
     const image = getCardImage(card);
+    const auraClasses = getCardAuraClasses(card, side, location);
 
-    return '<div class="battle-card ' + (selected ? "is-selected" : "") +
+    return '<div class="battle-card ' + auraClasses + " " + (selected ? "is-selected" : "") +
         '" data-side="' + side + '" data-location="' + location +
         '" data-uid="' + escapeHtml(card.uid || "") + '">' +
         '<div class="battle-card-art">' +
