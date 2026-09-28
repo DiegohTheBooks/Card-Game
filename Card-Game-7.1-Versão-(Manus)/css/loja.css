@@ -1,0 +1,209 @@
+.page-shop {
+    min-height: 100vh;
+    padding-top: 76px;
+}
+
+.page-shop .app-shell {
+    max-width: 1180px;
+    padding-bottom: 50px;
+}
+
+.page-back {
+    position: fixed;
+    top: 22px;
+    left: 24px;
+    z-index: 20;
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1px solid var(--ap-border);
+    border-radius: 9px;
+    color: var(--ap-muted);
+    background: rgba(17,17,31,.72);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 8px 25px rgba(0,0,0,.18);
+    transition: color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.page-back:hover {
+    color: var(--ap-gold-bright);
+    border-color: rgba(200,169,107,.65);
+    transform: translateX(-2px);
+}
+
+.shop-page-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.shop-page-header h1 {
+    margin-bottom: 7px;
+}
+
+.shop-toolbar {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    align-items: center;
+    padding: 22px;
+    margin-bottom: 24px;
+}
+
+.panel {
+    border: 1px solid var(--ap-border);
+    border-radius: 18px;
+    background: linear-gradient(145deg,rgba(36,33,59,.95),rgba(27,27,47,.95));
+    box-shadow: var(--ap-shadow);
+}
+
+.shop-toolbar h2 {
+    margin: 4px 0;
+}
+
+.shop-toolbar p:not(.section-label) {
+    color: var(--ap-muted);
+    margin: 6px 0 0;
+}
+
+.shop-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.shop-card {
+    border: 1px solid var(--ap-border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: rgba(27,27,47,.94);
+    box-shadow: 0 10px 28px rgba(0,0,0,.18);
+}
+
+.shop-art {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    cursor: pointer;
+    background: #11111f;
+}
+
+.shop-art::after {
+    content: "Clique para ver a ficha";
+    position: absolute;
+    left: 50%;
+    bottom: 14px;
+    transform: translate(-50%, 8px);
+    padding: 7px 10px;
+    border: 1px solid rgba(255,255,255,.18);
+    border-radius: 7px;
+    color: rgba(255,255,255,.88);
+    background: rgba(8,7,15,.72);
+    backdrop-filter: blur(5px);
+    font-size: .64rem;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+    white-space: nowrap;
+}
+
+.shop-art:hover::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.shop-art img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    transition: transform .22s ease, filter .22s ease;
+}
+
+.shop-art:hover img {
+    transform: scale(1.025);
+    filter: brightness(1.08);
+}
+
+.shop-info {
+    padding: 16px;
+}
+
+.shop-info h2 {
+    margin: 0 0 5px;
+}
+
+.shop-info small {
+    color: var(--ap-muted);
+}
+
+.shop-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 14px;
+    color: var(--ap-gold);
+    font-size: .75rem;
+}
+
+.shop-price {
+    width: 100%;
+    margin-top: 12px;
+    min-height: 42px;
+    border: 1px solid rgba(200,169,107,.45);
+    border-radius: 9px;
+    color: var(--ap-gold-bright);
+    background: rgba(200,169,107,.07);
+    font-weight: 700;
+    font-size: .9rem;
+    cursor: pointer;
+    transition: background .18s ease, border-color .18s ease;
+}
+
+.shop-price:hover {
+    border-color: var(--ap-gold);
+    background: rgba(200,169,107,.14);
+}
+
+.empty-state {
+    grid-column: 1/-1;
+}
+
+@media (max-width: 800px) {
+    .shop-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
+    }
+
+    .shop-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 520px) {
+    .page-shop {
+        padding-top: 70px;
+    }
+
+    .page-back {
+        top: 16px;
+        left: 16px;
+    }
+
+    .shop-page-header {
+        margin-bottom: 20px;
+    }
+
+    .shop-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .page-back,
+    .shop-art img,
+    .shop-art::after,
+    .shop-price {
+        transition: none;
+    }
+}

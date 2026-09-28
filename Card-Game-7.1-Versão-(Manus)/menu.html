@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CARD DUELS — Home</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+<body class="page-home">
+    <main class="home-screen">
+        <div class="home-background" aria-hidden="true"></div>
+        <div class="home-vignette" aria-hidden="true"></div>
+
+        <header class="home-topbar">
+            <a class="player-widget" href="profile.html" aria-label="Abrir perfil do jogador">
+                <div class="player-avatar" id="playerAvatar">A</div>
+                <div class="player-info">
+                    <span class="player-kicker">JOGADOR</span>
+                    <strong id="playerName">Autor</strong>
+                    <div class="player-level">
+                        <span>Nível <b id="playerLevel">0</b></span>
+                        <div class="home-xp"><span id="playerXpBar"></span></div>
+                    </div>
+                </div>
+            </a>
+
+            <div class="home-resources" aria-label="Recursos do jogador">
+                <div class="resource">
+                    <span class="resource-icon silver">◈</span>
+                    <strong id="walletSilver">0</strong>
+                </div>
+                <div class="resource">
+                    <span class="resource-icon gold">✦</span>
+                    <strong id="walletGold">0</strong>
+                </div>
+                <a class="home-settings" href="configuracao.html" aria-label="Configuração">⚙</a>
+            </div>
+        </header>
+
+        <section class="home-content" aria-label="Menu principal">
+            <div class="home-world-mark">
+                <span>UM MUNDO ALÉM DAS PÁGINAS</span>
+                <i></i>
+            </div>
+
+            <div class="home-hero-copy">
+                <p>O seu universo começa aqui.</p>
+                <h1>CARD <span>DUELS</span></h1>
+                <small>Escolha seu próximo capítulo.</small>
+            </div>
+
+            <a class="duel-button" href="duelo.html">
+                <span class="duel-icon">⚔</span>
+                <span>
+                    <strong>Duelo</strong>
+                    <small>Entrar em batalha</small>
+                </span>
+                <b>›</b>
+            </a>
+        </section>
+
+        <nav class="home-navigation" aria-label="Navegação do jogo">
+            <a class="home-nav-item" href="campanha.html"><span>📖</span><strong>História</strong></a>
+            <a class="home-nav-item" href="colecao.html"><span>◈</span><strong>Coleção</strong></a>
+            <a class="home-nav-item" href="baralho.html"><span>🃏</span><strong>Baralho</strong></a>
+            <a class="home-nav-item" href="codex.html"><span>✧</span><strong>Códex</strong></a>
+            <a class="home-nav-item" href="evolucao.html"><span>✦</span><strong>Evolução</strong></a>
+            <a class="home-nav-item" href="conquistas.html"><span>🏆</span><strong>Conquistas</strong></a>
+            <a class="home-nav-item" href="loja.html"><span>◆</span><strong>Loja</strong></a>
+        </nav>
+
+        <footer class="home-footer">
+            <span>UM MUNDO ALÉM DAS PÁGINAS</span>
+            <span class="home-footer-separator">•</span>
+            <span>CARD DUELS</span>
+        </footer>
+    </main>
+
+    <script type="module" src="js/pages/index.js"></script>
+    <script type="module" src="js/audio/interface-audio.js?v=20260927-home"></script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Configuração — CARD DUELS</title>
+
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/configuracao.css">
+</head>
+
+<body class="page-settings">
+    <main class="app-shell settings-shell">
+
+        <a class="back-link" href="index.html">← Voltar ao menu principal</a>
+
+        <header class="page-header compact">
+            <p class="eyebrow">CARD DUELS</p>
+            <h1>Configuração</h1>
+            <p class="subtitle">Preferências do jogo</p>
+        </header>
+
+        <section class="settings-section" aria-labelledby="sound-title">
+            <div class="settings-section-heading">
+                <div>
+                    <p class="settings-kicker">PREFERÊNCIAS</p>
+                    <h2 id="sound-title">🔊 Som</h2>
+                </div>
+                <span class="settings-status">ÁUDIO</span>
+            </div>
+
+            <div class="settings-list">
+
+                <div class="setting-row">
+                    <div class="setting-copy">
+                        <strong>Volume geral</strong>
+                        <small>Controla o volume de todo o áudio do jogo.</small>
+                    </div>
+
+                    <div class="range-control">
+                        <input id="masterVolume" type="range" min="0" max="100" step="1" value="100">
+                        <output id="masterVolumeValue" for="masterVolume">100%</output>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-copy">
+                        <strong>Efeitos sonoros</strong>
+                        <small>Controla os sons de interface, cartas, combate e habilidades.</small>
+                    </div>
+
+                    <div class="range-control">
+                        <input id="effectsVolume" type="range" min="0" max="100" step="1" value="72">
+                        <output id="effectsVolumeValue" for="effectsVolume">72%</output>
+                    </div>
+                </div>
+
+                <div class="setting-row">
+                    <div class="setting-copy">
+                        <strong>Música</strong>
+                        <small>Controla a música ambiente do menu e das batalhas.</small>
+                    </div>
+
+                    <div class="range-control">
+                        <input id="musicVolume" type="range" min="0" max="100" step="1" value="100">
+                        <output id="musicVolumeValue" for="musicVolume">100%</output>
+                    </div>
+                </div>
+
+                <div class="setting-row mute-row">
+                    <div class="setting-copy">
+                        <strong>Silenciar tudo</strong>
+                        <small>Desliga temporariamente todos os sons sem alterar os volumes salvos.</small>
+                    </div>
+
+                    <label class="switch">
+                        <input id="muteAll" type="checkbox">
+                        <span class="switch-track" aria-hidden="true"></span>
+                        <span class="sr-only">Silenciar todos os sons</span>
+                    </label>
+                </div>
+
+            </div>
+
+            <p id="settingsFeedback" class="settings-feedback" role="status" aria-live="polite">
+                Configurações salvas automaticamente.
+            </p>
+        </section>
+
+    </main>
+
+    <script type="module" src="js/pages/configuracao.js"></script>
+    <script type="module" src="js/audio/interface-audio.js"></script>
+</body>
+</html>

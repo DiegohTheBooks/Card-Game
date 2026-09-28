@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CARD DUELS — Baralho</title>
+<link rel="stylesheet" href="css/global.css">
+<link rel="stylesheet" href="css/baralho.css">
+</head>
+<body class="page-baralho">
+<main class="app-shell">
+<a class="back-link deck-back-link" href="menu.html">← Voltar</a>
+<header class="page-header deck-page-header">
+<p class="eyebrow">CONSTRUÇÃO DE DECK</p>
+<h1>🃏 Baralho</h1>
+<p class="subtitle">Monte seu deck escolhendo cartas do inventário.</p>
+</header>
+<section class="deck-workspace">
+<section class="deck-zone inventory-zone" id="inventoryDropZone">
+<div class="zone-heading"><div><p class="section-label">Suas cartas</p><h2>Inventário</h2></div><div class="zone-counter"><span>Possuídas</span><strong id="inventoryCount">0</strong></div></div>
+<p class="zone-help">Clique para adicionar · Arraste para o deck · ⓘ abre a ficha</p>
+<div id="inventoryGrid" class="inventory-grid"></div>
+</section>
+<section class="deck-zone deck-zone-main" id="deckDropZone">
+<div class="zone-heading"><div><p class="section-label">25 espaços de batalha</p><h2>Meu Deck</h2></div><div class="zone-counter deck-counter"><span>Deck</span><strong id="deckCount">0 / 25</strong></div></div>
+<p id="deckStatus" class="deck-status">Clique em uma carta do inventário para adicioná-la ao deck.</p>
+<div id="deckGrid" class="deck-grid"></div>
+<div class="deck-actions"><button id="selectDeckButton" class="button-secondary" type="button">Selecionar Deck de História</button><button id="clearDeckButton" class="button-secondary" type="button">Limpar Deck</button></div>
+</section>
+</section>
+</main>
+<div id="deckSelectionOverlay" class="deck-selection-overlay" aria-hidden="true">
+<div class="deck-selection-modal" role="dialog" aria-modal="true" aria-labelledby="deckSelectionTitle">
+<span class="section-label">FASE DE TESTES</span><h2 id="deckSelectionTitle">Selecionar Deck de História</h2>
+<p>Escolha exatamente 25 cartas elegíveis para testar diferentes combinações. Esta ferramenta continua separada do inventário principal.</p>
+<div class="deck-selection-summary"><strong><span id="deckSelectionCount">0</span> / 25</strong><span id="deckSelectionAvailable">0 cartas elegíveis</span></div>
+<div id="deckSelectionGrid" class="deck-selection-grid"></div><p id="deckSelectionStatus" class="deck-status"></p>
+<div class="deck-selection-actions"><button id="cancelDeckSelection" class="button-secondary" type="button">Cancelar</button><button id="confirmDeckSelection" class="button-primary" type="button" disabled>Usar este Deck</button></div>
+</div></div>
+<script type="module" src="js/pages/baralho.js"></script>
+<script type="module" src="js/cards/card-sheet.js"></script>
+<script type="module" src="js/audio/interface-audio.js"></script>
+</body></html>

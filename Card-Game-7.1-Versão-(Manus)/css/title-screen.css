@@ -1,0 +1,208 @@
+/* Tela inicial — Um Mundo Além das Páginas */
+
+.title-screen {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100svh;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    isolation: isolate;
+    background:
+        linear-gradient(90deg, rgba(7, 8, 18, .76) 0%, rgba(7, 8, 18, .48) 42%, rgba(7, 8, 18, .20) 100%),
+        linear-gradient(0deg, rgba(7, 8, 18, .55) 0%, transparent 45%, rgba(7, 8, 18, .20) 100%),
+        url("../images/hero-literario-magico.webp") center center / cover no-repeat;
+}
+
+.title-screen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 45%, transparent 25%, rgba(0,0,0,.28) 100%);
+}
+
+.title-content {
+    width: min(520px, calc(100% - 40px));
+    margin-right: auto;
+    margin-left: clamp(6vw, 12vw, 15vw);
+    padding: 30px 0;
+    text-align: center;
+    animation: title-enter .9s ease both;
+}
+
+.title-eyebrow {
+    margin: 0 0 7px;
+    color: rgba(255,255,255,.82);
+    font-family: "Montserrat", sans-serif;
+    font-size: clamp(.62rem, 1vw, .78rem);
+    font-weight: 600;
+    letter-spacing: .34em;
+    text-transform: uppercase;
+}
+
+.game-title {
+    margin: 0;
+    color: #fff;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(3rem, 6.2vw, 5.7rem);
+    font-weight: 600;
+    line-height: .9;
+    letter-spacing: -.025em;
+    text-shadow: 0 4px 24px rgba(0,0,0,.55);
+}
+
+.game-title .gold {
+    display: block;
+    margin-top: .1em;
+    color: #c9a227;
+    text-shadow: 0 0 24px rgba(201,162,39,.18), 0 4px 24px rgba(0,0,0,.55);
+}
+
+.game-subtitle {
+    margin: 22px 0 34px;
+    color: rgba(255,255,255,.92);
+    font-family: "Montserrat", sans-serif;
+    font-size: clamp(.95rem, 1.7vw, 1.3rem);
+    font-weight: 500;
+    letter-spacing: .42em;
+    text-indent: .42em;
+    text-transform: uppercase;
+    text-shadow: 0 2px 14px rgba(0,0,0,.65);
+}
+
+.title-menu {
+    width: min(280px, 100%);
+    margin: 0 auto;
+    display: grid;
+    gap: 10px;
+}
+
+.title-button {
+    min-height: 52px;
+    padding: 12px 24px;
+    border: 1px solid rgba(201,162,39,.58);
+    border-radius: 4px;
+    color: #fff;
+    background: rgba(9, 10, 20, .48);
+    box-shadow: 0 8px 26px rgba(0,0,0,.20), inset 0 0 0 1px rgba(255,255,255,.035);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Montserrat", sans-serif;
+    font-size: .82rem;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-decoration: none;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform .2s ease, background .2s ease, border-color .2s ease, color .2s ease, box-shadow .2s ease;
+}
+
+.title-button:hover,
+.title-button:focus-visible {
+    transform: translateY(-2px);
+    border-color: #c9a227;
+    color: #f4df98;
+    background: rgba(27, 24, 39, .72);
+    box-shadow: 0 10px 30px rgba(0,0,0,.30), 0 0 20px rgba(201,162,39,.12);
+    outline: none;
+}
+
+.title-button:active {
+    transform: translateY(0);
+}
+
+.title-button-quiet {
+    border-color: rgba(255,255,255,.24);
+    background: rgba(9, 10, 20, .28);
+}
+
+.title-footer {
+    position: absolute;
+    left: 50%;
+    bottom: 20px;
+    transform: translateX(-50%);
+    width: calc(100% - 40px);
+    color: rgba(255,255,255,.46);
+    font-family: "Montserrat", sans-serif;
+    font-size: .62rem;
+    letter-spacing: .16em;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+@keyframes title-enter {
+    from {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 800px) {
+    .title-screen {
+        background-position: 58% center;
+    }
+
+    .title-content {
+        width: min(460px, calc(100% - 32px));
+        margin: 0 auto;
+        padding-bottom: 50px;
+    }
+
+    .title-screen::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background: rgba(7, 8, 18, .24);
+        pointer-events: none;
+    }
+}
+
+@media (max-width: 520px) {
+    .title-screen {
+        background-position: 62% center;
+    }
+
+    .title-content {
+        width: calc(100% - 28px);
+    }
+
+    .game-title {
+        font-size: clamp(2.7rem, 13vw, 4rem);
+    }
+
+    .game-subtitle {
+        margin-top: 18px;
+        margin-bottom: 28px;
+        font-size: .82rem;
+        letter-spacing: .28em;
+        text-indent: .28em;
+    }
+
+    .title-button {
+        min-height: 50px;
+    }
+
+    .title-footer {
+        bottom: 12px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .title-content {
+        animation: none;
+    }
+
+    .title-button {
+        transition: none;
+    }
+}

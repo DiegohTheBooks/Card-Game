@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Um Mundo Além das Páginas — Card Duels</title>
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/title-screen.css">
+</head>
+<body class="page-title">
+    <main class="title-screen">
+        <section class="title-content" aria-label="Tela inicial">
+            <p class="title-eyebrow">Um universo de histórias</p>
+
+            <h1 class="game-title">
+                <span>Um Mundo</span>
+                <span class="gold">Além das Páginas</span>
+            </h1>
+
+            <p class="game-subtitle">Card Duels</p>
+
+            <nav class="title-menu" aria-label="Menu inicial">
+                <a class="title-button" href="menu.html">Iniciar Jogo</a>
+                <a class="title-button" href="configuracao.html">Opções</a>
+                <button class="title-button title-button-quiet" type="button" id="exitButton">Sair</button>
+            </nav>
+        </section>
+
+        <p class="title-footer">Um Mundo Além das Páginas — Card Duels</p>
+    </main>
+
+    <script type="module" src="js/audio/interface-audio.js?v=20260927-title"></script>
+    <script type="module">
+        // "Sair" é propositalmente apenas decorativo nesta versão.
+        document.getElementById("exitButton")?.addEventListener("click", () => {});
+    </script>
+</body>
+</html>
