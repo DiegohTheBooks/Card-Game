@@ -1,4 +1,4 @@
-import { openDatabase } from "../core/database.js";
+import { openDatabase, getAll, STORES } from "../core/database.js";
 import { getPlayerProfile, getProgress } from "../player/profile.js";
 import { getWallet } from "../player/currency.js";
 
@@ -12,6 +12,28 @@ const els = {
     playerXpBar: document.getElementById("playerXpBar"),
     playerAvatar: document.getElementById("playerAvatar")
 };
+
+function cardImage(card) {
+    return card?.image || card?.imageData || card?.imageUrl || card?.art || "";
+}
+
+async function resolveAvatar(profile) {
+    const value = String(profile?.avatar || "").trim();
+
+    if (!value) return "";
+
+    // Mantém compatibilidade com perfis antigos que eventualmente
+    // tenham guardado a própria URL/data da imagem.
+    if (/^(data:|https?:|blob:)/i.test(value)) {
+        return value;
+    }
+
+    // O perfil atual guarda o originalId da carta/personagem escolhida.
+    const cards = await getAll(STORES.COLLECTION);
+    const card = cards.find(item => String(item.originalId) === value);
+
+    return cardImage(card);
+}
 
 async function loadHome() {
     try {
@@ -42,13 +64,15 @@ async function loadHome() {
         }
 
         if (els.playerAvatar) {
-            const avatar = String(profile.avatar || "").trim();
+            const image = await resolveAvatar(profile);
 
-            if (avatar) {
+            if (image) {
                 els.playerAvatar.textContent = "";
                 els.playerAvatar.classList.add("has-image");
-                els.playerAvatar.style.backgroundImage = `url("${avatar}")`;
+                els.playerAvatar.style.backgroundImage = `url("${image}")`;
             } else {
+                els.playerAvatar.classList.remove("has-image");
+                els.playerAvatar.style.backgroundImage = "";
                 const name = String(profile.name || "Autor").trim();
                 els.playerAvatar.textContent = name.charAt(0).toUpperCase() || "A";
             }
